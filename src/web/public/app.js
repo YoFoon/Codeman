@@ -600,7 +600,7 @@ class CodemanApp {
       },
       fontFamily: '"Fira Code", "Cascadia Code", "JetBrains Mono", "SF Mono", Monaco, monospace',
       // Use smaller font on mobile to fit more columns (prevents wrapping of Claude's status line)
-      fontSize: MobileDetection.getDeviceType() === 'mobile' ? 10 : 14,
+      fontSize: MobileDetection.getDeviceType() === 'mobile' ? 10 : 12,
       lineHeight: 1.2,
       cursorBlink: false,
       cursorStyle: 'block',
@@ -3118,6 +3118,9 @@ class CodemanApp {
       }
     });
 
+    // Restore tabs that were open before refresh but are no longer on the server
+    this._restoreEndedTabs();
+
     // Sync sessionOrder with current sessions (preserve order, add new, remove stale)
     this.syncSessionOrder();
 
@@ -3409,7 +3412,8 @@ class CodemanApp {
       const tallTabsEnabled = this._tallTabsEnabled ?? false;
       const showFolder = tallTabsEnabled && session.name && folderName && folderName !== name;
 
-      parts.push(`<div class="session-tab ${isActive ? 'active' : ''}${alertClass}" data-id="${id}" data-color="${color}" onclick="app.selectSession('${escapeHtml(id)}')" oncontextmenu="event.preventDefault(); app.startInlineRename('${escapeHtml(id)}')" tabindex="0" role="tab" aria-selected="${isActive ? 'true' : 'false'}" aria-label="${escapeHtml(name)} session" ${session.workingDir ? `title="${escapeHtml(session.workingDir)}"` : ''}>
+      const endedAttr = session._ended ? ' data-ended="1"' : '';
+      parts.push(`<div class="session-tab ${isActive ? 'active' : ''}${alertClass}" data-id="${id}" data-color="${color}"${endedAttr} onclick="app.selectSession('${escapeHtml(id)}')" oncontextmenu="event.preventDefault(); app.startInlineRename('${escapeHtml(id)}')" tabindex="0" role="tab" aria-selected="${isActive ? 'true' : 'false'}" aria-label="${escapeHtml(name)} session" ${session.workingDir ? `title="${escapeHtml(session.workingDir)}"` : ''}>
           <span class="tab-status ${status}" aria-hidden="true"></span>
           <span class="tab-info">
             <span class="tab-name-row">
@@ -3426,6 +3430,9 @@ class CodemanApp {
     }
 
     container.innerHTML = parts.join('');
+
+    // Persist tab metadata for refresh recovery
+    this._saveTabMetadata();
 
     // Set up drag-and-drop handlers for tab reordering
     this.setupTabDragHandlers();
@@ -3524,6 +3531,33 @@ class CodemanApp {
     } catch {
       // Ignore storage errors
     }
+  }
+
+  // Save tab metadata to localStorage so ended sessions can be restored after refresh
+  _saveTabMetadata() {
+    try {
+      const meta = {};
+      for (const [id, s] of this.sessions) {
+        if (s._ended) continue; // Don't persist ended stubs back
+        meta[id] = { id, name: s.name || '', workingDir: s.workingDir || '', mode: s.mode || 'claude', color: s.color || 'default' };
+      }
+      localStorage.setItem('codeman-tab-meta', JSON.stringify(meta));
+    } catch { /* ignore */ }
+  }
+
+  // Restore tabs that were open before refresh but are no longer on the server
+  _restoreEndedTabs() {
+    try {
+      const saved = localStorage.getItem('codeman-tab-meta');
+      if (!saved) return;
+      const meta = JSON.parse(saved);
+      for (const [id, info] of Object.entries(meta)) {
+        if (!this.sessions.has(id)) {
+          // Add a stub session so the tab renders
+          this.sessions.set(id, { id, name: info.name, workingDir: info.workingDir, mode: info.mode, color: info.color, status: 'ended', _ended: true });
+        }
+      }
+    } catch { /* ignore */ }
   }
 
   // Set up drag-and-drop handlers on tab elements
@@ -3748,6 +3782,13 @@ class CodemanApp {
 
     // Check if this is a restored session that needs to be attached
     const session = this.sessions.get(sessionId);
+
+    // Ended tabs (restored from localStorage, no longer on server) — show message, skip buffer load
+    if (session?._ended) {
+      this.terminal.clear();
+      this.terminal.write('\r\n  \x1b[2mSession ended. Close tab or click to reopen.\x1b[0m\r\n');
+      return;
+    }
 
     // Track working directory for path normalization in Project Insights
     this.currentSessionWorkingDir = session?.workingDir || null;
@@ -5226,13 +5267,13 @@ class CodemanApp {
   }
 
   increaseFontSize() {
-    const current = this.terminal.options.fontSize || 14;
+    const current = this.terminal.options.fontSize || 12;
     this.setFontSize(Math.min(current + 2, 24));
   }
 
   decreaseFontSize() {
-    const current = this.terminal.options.fontSize || 14;
-    this.setFontSize(Math.max(current - 2, 10));
+    const current = this.terminal.options.fontSize || 12;
+    this.setFontSize(Math.max(current - 2, 8));
   }
 
   setFontSize(size) {
@@ -5248,7 +5289,7 @@ class CodemanApp {
     const saved = localStorage.getItem('codeman-font-size');
     if (saved) {
       const size = parseInt(saved, 10);
-      if (size >= 10 && size <= 24) {
+      if (size >= 8 && size <= 24) {
         this.terminal.options.fontSize = size;
         document.getElementById('fontSizeDisplay').textContent = size;
       }
