@@ -63,7 +63,7 @@
  * @class CodemanApp
  * @globals {CodemanApp} app - Singleton instance (also on window.app)
  *
- * @dependency constants.js (SSE_EVENTS, timing constants, escapeHtml, extractSyncSegments, DEC sync markers)
+ * @dependency constants.js (SSE_EVENTS, timing constants, escapeHtml, DEC_SYNC_STRIP_RE)
  * @dependency mobile-handlers.js (MobileDetection, KeyboardHandler, SwipeHandler)
  * @dependency voice-input.js (VoiceInput, DeepgramProvider)
  * @dependency notification-manager.js (NotificationManager class)
@@ -600,7 +600,7 @@ class CodemanApp {
       },
       fontFamily: '"Fira Code", "Cascadia Code", "JetBrains Mono", "SF Mono", Monaco, monospace',
       // Use smaller font on mobile to fit more columns (prevents wrapping of Claude's status line)
-      fontSize: MobileDetection.getDeviceType() === 'mobile' ? 10 : 12,
+      fontSize: MobileDetection.getDeviceType() === 'mobile' ? 10 : 14,
       lineHeight: 1.2,
       cursorBlink: false,
       cursorStyle: 'block',
@@ -1181,34 +1181,40 @@ class CodemanApp {
     }
   }
 
+  /**
+   * Fetch and deduplicate history sessions (up to 2 per dir, max `limit` total).
+   * @returns {Promise<Array>} deduplicated session list, sorted by lastModified desc
+   */
+  async _fetchHistorySessions(limit = 12) {
+    const res = await fetch('/api/history/sessions');
+    const data = await res.json();
+    const sessions = data.sessions || [];
+    if (sessions.length === 0) return [];
+
+    const byDir = new Map();
+    for (const s of sessions) {
+      if (!byDir.has(s.workingDir)) byDir.set(s.workingDir, []);
+      byDir.get(s.workingDir).push(s);
+    }
+    const items = [];
+    for (const [, group] of byDir) {
+      items.push(...group.slice(0, 2));
+    }
+    items.sort((a, b) => new Date(b.lastModified) - new Date(a.lastModified));
+    return items.slice(0, limit);
+  }
+
   async loadHistorySessions() {
     const container = document.getElementById('historySessions');
     const list = document.getElementById('historyList');
     if (!container || !list) return;
 
     try {
-      const res = await fetch('/api/history/sessions');
-      const data = await res.json();
-      const sessions = data.sessions || [];
-      if (sessions.length === 0) {
+      const display = await this._fetchHistorySessions(12);
+      if (display.length === 0) {
         container.style.display = 'none';
         return;
       }
-
-      // Deduplicate: keep only the most recent session per workingDir
-      const byDir = new Map();
-      for (const s of sessions) {
-        if (!byDir.has(s.workingDir)) byDir.set(s.workingDir, []);
-        byDir.get(s.workingDir).push(s);
-      }
-
-      // Flatten: show up to 2 most recent per dir, max 12 total
-      const items = [];
-      for (const [, group] of byDir) {
-        items.push(...group.slice(0, 2));
-      }
-      items.sort((a, b) => new Date(b.lastModified) - new Date(a.lastModified));
-      const display = items.slice(0, 12);
 
       // Build DOM safely (no innerHTML with user data)
       list.replaceChildren();
@@ -4263,27 +4269,11 @@ class CodemanApp {
     container.innerHTML = '<div class="run-mode-hist-empty">Loading...</div>';
 
     try {
-      const res = await fetch('/api/history/sessions');
-      const data = await res.json();
-      const sessions = data.sessions || [];
-
-      if (sessions.length === 0) {
+      const display = await this._fetchHistorySessions(10);
+      if (display.length === 0) {
         container.innerHTML = '<div class="run-mode-hist-empty">No history</div>';
         return;
       }
-
-      // Deduplicate: up to 2 per dir, max 10 total
-      const byDir = new Map();
-      for (const s of sessions) {
-        if (!byDir.has(s.workingDir)) byDir.set(s.workingDir, []);
-        byDir.get(s.workingDir).push(s);
-      }
-      const items = [];
-      for (const [, group] of byDir) {
-        items.push(...group.slice(0, 2));
-      }
-      items.sort((a, b) => new Date(b.lastModified) - new Date(a.lastModified));
-      const display = items.slice(0, 10);
 
       // Build items using DOM API for reliable mobile touch handling
       container.replaceChildren();
@@ -5211,13 +5201,13 @@ class CodemanApp {
   }
 
   increaseFontSize() {
-    const current = this.terminal.options.fontSize || 12;
+    const current = this.terminal.options.fontSize || 14;
     this.setFontSize(Math.min(current + 2, 24));
   }
 
   decreaseFontSize() {
-    const current = this.terminal.options.fontSize || 12;
-    this.setFontSize(Math.max(current - 2, 8));
+    const current = this.terminal.options.fontSize || 14;
+    this.setFontSize(Math.max(current - 2, 10));
   }
 
   setFontSize(size) {
@@ -5233,7 +5223,7 @@ class CodemanApp {
     const saved = localStorage.getItem('codeman-font-size');
     if (saved) {
       const size = parseInt(saved, 10);
-      if (size >= 8 && size <= 24) {
+      if (size >= 10 && size <= 24) {
         this.terminal.options.fontSize = size;
         document.getElementById('fontSizeDisplay').textContent = size;
       }

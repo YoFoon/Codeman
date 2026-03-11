@@ -123,13 +123,6 @@ import {
   INACTIVITY_TIMEOUT_MS,
 } from '../config/server-timing.js';
 
-// DEC mode 2026 - Synchronized Output
-// When terminal supports this, it buffers all output between start/end markers
-// and renders atomically, eliminating partial-frame flicker from Ink redraws.
-// Supported by: WezTerm, Kitty, Ghostty, iTerm2 3.5+, Windows Terminal, VSCode terminal
-// DEC 2026 sync markers no longer added server-side — xterm.js 6.0 handles
-// them natively and Claude CLI already emits its own markers via Ink.
-
 // SSE padding for Cloudflare tunnel buffer flushing.
 // Cloudflare quick tunnels buffer small SSE responses, causing lag for real-time events.
 // Appending SSE comment padding (ignored by EventSource) forces the proxy to flush.
