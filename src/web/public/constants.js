@@ -2,13 +2,12 @@
  * @fileoverview Shared constants, utility functions, and SSE event type registry for all frontend modules.
  *
  * This is the first script loaded in index.html. Every other frontend module depends on the
- * globals defined here: timing constants, Z-index layers, DEC 2026 sync markers, respawn
- * preset definitions, the SSE_EVENTS registry, and shared utilities (escapeHtml, extractSyncSegments,
+ * globals defined here: timing constants, Z-index layers, respawn
+ * preset definitions, the SSE_EVENTS registry, and shared utilities (escapeHtml,
  * getEventCoords, scheduleBackground, urlBase64ToUint8Array).
  *
  * @globals {function} urlBase64ToUint8Array - VAPID key conversion for Web Push
  * @globals {function} scheduleBackground - scheduler.postTask wrapper (background priority)
- * @globals {function} extractSyncSegments - DEC 2026 terminal sync marker parser
  * @globals {function} getEventCoords - Unified mouse/touch coordinate extractor
  * @globals {function} escapeHtml - XSS-safe HTML escaping
  * @globals {object} SSE_EVENTS - Centralized SSE event type constants (~73 event types)
@@ -79,14 +78,8 @@ function scheduleBackground(fn) {
   else { requestAnimationFrame(fn); }
 }
 
-// DEC mode 2026 - Synchronized Output (xterm.js 6.0+ handles natively)
-// Wrap terminal writes with these markers to prevent partial-frame flicker.
-// Terminal buffers all output between markers and renders atomically.
-// Supported by: WezTerm, Kitty, Ghostty, iTerm2 3.5+, Windows Terminal, VSCode terminal
-// xterm.js 6.0+ supports DEC 2026 natively. Constants kept for reference/stripping.
-const DEC_SYNC_START = '\x1b[?2026h';
-const DEC_SYNC_END = '\x1b[?2026l';
-// Pre-compiled regex for stripping DEC 2026 markers (single pass instead of two replaceAll calls)
+// DEC mode 2026 marker stripping — xterm.js 6.0 handles sync natively,
+// but server-sent terminal buffers may still contain markers from Claude CLI.
 const DEC_SYNC_STRIP_RE = /\x1b\[\?2026[hl]/g;
 
 // Built-in respawn configuration presets
@@ -301,59 +294,6 @@ function getEventCoords(e) {
     return { clientX: e.changedTouches[0].clientX, clientY: e.changedTouches[0].clientY };
   }
   return { clientX: e.clientX, clientY: e.clientY };
-}
-
-/**
- * Process data containing DEC 2026 sync markers.
- * Strips markers and returns segments that should be written atomically.
- * Each returned segment represents content between SYNC_START and SYNC_END.
- * Content outside sync blocks is returned as-is.
- *
- * @param {string} data - Raw terminal data with potential sync markers
- * @returns {string[]} - Array of content segments to write (markers stripped)
- */
-function extractSyncSegments(data) {
-  const segments = [];
-  let remaining = data;
-
-  while (remaining.length > 0) {
-    const startIdx = remaining.indexOf(DEC_SYNC_START);
-
-    if (startIdx === -1) {
-      // No more sync blocks, return rest as-is
-      if (remaining.length > 0) {
-        segments.push(remaining);
-      }
-      break;
-    }
-
-    // Content before sync block (if any)
-    if (startIdx > 0) {
-      segments.push(remaining.slice(0, startIdx));
-    }
-
-    // Find matching end marker
-    const afterStart = remaining.slice(startIdx + DEC_SYNC_START.length);
-    const endIdx = afterStart.indexOf(DEC_SYNC_END);
-
-    if (endIdx === -1) {
-      // No end marker found - sync block continues in next chunk
-      // Include the start marker so it can be handled when more data arrives
-      segments.push(remaining.slice(startIdx));
-      break;
-    }
-
-    // Extract synchronized content (without markers)
-    const syncContent = afterStart.slice(0, endIdx);
-    if (syncContent.length > 0) {
-      segments.push(syncContent);
-    }
-
-    // Continue with content after end marker
-    remaining = afterStart.slice(endIdx + DEC_SYNC_END.length);
-  }
-
-  return segments;
 }
 
 // HTML escape utility (shared by NotificationManager, CodemanApp, and ralph-wizard.js)

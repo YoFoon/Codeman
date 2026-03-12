@@ -986,9 +986,8 @@ export class Session extends EventEmitter {
             }
           );
 
-          // Set claudeSessionId immediately since we passed --session-id to Claude
-          // The mux manager passes --session-id ${sessionId} to Claude
-          this._claudeSessionId = this.id;
+          // Set claudeSessionId — when resuming, the Claude conversation ID is the resumed one.
+          this._claudeSessionId = this._resumeSessionId || this.id;
         } catch (spawnErr) {
           console.error('[Session] Failed to spawn PTY for mux attachment:', spawnErr);
           this.emit('error', `Failed to attach to mux session: ${spawnErr}`);
@@ -1073,9 +1072,8 @@ export class Session extends EventEmitter {
       }
     }
 
-    // Set the claudeSessionId immediately since we passed --session-id
-    // This ensures subagent matching works without waiting for JSON messages
-    this._claudeSessionId = this.id;
+    // Set claudeSessionId — when resuming, the Claude conversation ID is the resumed one.
+    this._claudeSessionId = this._resumeSessionId || this.id;
 
     this._pid = this.ptyProcess.pid;
     console.log('[Session] Interactive PTY spawned with PID:', this._pid);

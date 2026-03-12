@@ -44,7 +44,7 @@ When user says "COM":
    "aicodeman": patch
    ---
 
-   Description of changes
+   Detailed description of ALL changes since last release (not just the most recent commit — review full git log since last version tag)
    CHANGESET
    ```
    Replace `patch` with `minor` or `major` as needed. Include `"xterm-zerolag-input": patch` on a separate line if that package changed too.

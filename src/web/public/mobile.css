@@ -234,6 +234,35 @@ html.mobile-init .file-browser-panel {
   .subagent-window-body {
     font-size: 0.7rem;
   }
+
+  /* Show desktop voice button on tablet (hidden by max-width:1023px in styles.css,
+     mobile .btn-voice-mobile only shows at <430px) */
+  .toolbar-center .btn-toolbar.btn-voice {
+    display: flex !important;
+  }
+
+  /* Toolbar — use desktop-style sizing on tablet (plenty of room at 430-768px) */
+  .toolbar {
+    padding: 0 0.5rem;
+    gap: 0.5rem;
+  }
+
+  .toolbar-left,
+  .toolbar-right {
+    gap: 0.5rem;
+  }
+
+  /* Instance count controls are hidden on tablet, so toolbar-group needs gap
+     to space out Run / Stop / Run Shell (desktop uses gap:0 because -1+ separates them) */
+  .toolbar-group {
+    gap: 0.5rem;
+  }
+
+  .btn-toolbar {
+    padding: 0.4rem 0.75rem;
+    font-size: 0.75rem;
+    min-height: unset;
+  }
 }
 
 /* ============================================================================
@@ -508,6 +537,13 @@ html.mobile-init .file-browser-panel {
     transition: transform 0.15s ease-out;
     /* Ensure transform works properly */
     will-change: transform;
+  }
+
+  /* iOS Safari with tab bar: position: fixed uses the layout viewport which
+     extends behind the browser chrome. Offset the toolbar upward by the delta
+     between 100vh (layout) and --app-height (visual). */
+  .ios-device.safari-browser .toolbar {
+    bottom: calc(var(--safe-area-bottom) + (100vh - var(--app-height, 100vh)));
   }
 
   /* Show case selector in center */
@@ -1914,6 +1950,87 @@ html.mobile-init .file-browser-panel {
   }
 }
 
+
+/* ============================================================================
+   Keyboard Accessory Bar — all mobile/tablet sizes
+   Visual styles extracted from phone breakpoint so they apply on iPad too.
+   Phone-specific positioning (position: fixed) remains in @media (max-width: 430px).
+   ============================================================================ */
+.keyboard-accessory-bar {
+  display: none;
+  height: 44px;
+  background: #1a1a1a;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 6px 8px;
+  gap: 8px;
+  align-items: center;
+  justify-content: center;
+  z-index: 51;
+}
+
+.keyboard-accessory-bar.visible {
+  display: flex;
+}
+
+.accessory-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 6px 12px;
+  background: #2a2a2a;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 6px;
+  color: #e5e5e5;
+  font-size: 0.65rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.accessory-btn.confirming {
+  background: #6b4f00;
+  border-color: #b8860b;
+  color: #ffd54f;
+}
+
+.accessory-btn:active {
+  background: #3a3a3a;
+}
+
+.accessory-btn svg {
+  width: 14px;
+  height: 14px;
+}
+
+.accessory-btn-arrow {
+  padding: 6px 10px;
+  background: #1e3a5f;
+  border-color: rgba(59, 130, 246, 0.3);
+  color: #93c5fd;
+}
+
+.accessory-btn-arrow:active {
+  background: #2563eb;
+}
+
+.accessory-btn-dismiss {
+  padding: 8px 14px;
+  background: #2a2a2a;
+  border: 1.5px solid rgba(255, 255, 255, 0.25);
+  border-radius: 6px;
+  color: #e5e5e5;
+}
+
+.accessory-btn-dismiss svg {
+  width: 22px;
+  height: 22px;
+  stroke-width: 3;
+}
+
+.accessory-btn-dismiss:active {
+  background: #3a3a3a;
+}
 
 /* ============================================================================
    iOS Safari Specific Fixes
