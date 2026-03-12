@@ -21,8 +21,11 @@ export const MAX_AUTH_SESSIONS = 100;
 // Rate Limiting
 // ============================================================================
 
-/** Max failed auth attempts per IP before 429 rejection */
-export const AUTH_FAILURE_MAX = 10;
+/**
+ * Max failed auth attempts per IP before 429 rejection.
+ * Set CODEMAN_DISABLE_RATE_LIMIT=true to effectively disable rate limiting (useful for trusted networks).
+ */
+export const AUTH_FAILURE_MAX = process.env.CODEMAN_DISABLE_RATE_LIMIT === 'true' ? 999999 : 10;
 
 /** Failed auth attempt tracking window (ms) */
 export const AUTH_FAILURE_WINDOW_MS = 15 * 60 * 1000;

@@ -12,6 +12,7 @@ import { homedir, totalmem, freemem, loadavg, cpus } from 'node:os';
 import { execSync } from 'node:child_process';
 import { randomBytes } from 'node:crypto';
 import { ApiErrorCode, createErrorResponse, getErrorMessage, type NiceConfig } from '../../types.js';
+import { getResourceUsage } from '../../resource-monitor.js';
 import {
   ConfigUpdateSchema,
   SettingsUpdateSchema,
@@ -391,6 +392,13 @@ export function registerSystemRoutes(
 
   app.get('/api/system/stats', async () => {
     return getSystemStats();
+  });
+
+  // ========== System Resources ==========
+
+  app.get('/api/system/resources', async (_req, reply) => {
+    const usage = getResourceUsage();
+    return reply.send({ status: 'ok', data: usage });
   });
 
   // ========== Settings ==========

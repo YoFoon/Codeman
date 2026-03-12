@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <meta name="description" content="Claude Code session manager with web interface">
+  <meta http-equiv="Content-Language" content="zh-CN">
   <meta name="theme-color" content="#0a0a0a">
   <meta name="google" content="notranslate">
   <link rel="manifest" href="manifest.json">
@@ -46,20 +47,20 @@
     <div class="skeleton-toolbar"></div>
   </div>
   <!-- Skip link for keyboard users -->
-  <a href="#terminalContainer" class="skip-link">Skip to terminal</a>
+  <a href="#terminalContainer" class="skip-link">跳转到终端</a>
   <div class="app">
     <!-- Compact Header with Session Tabs -->
     <header class="header">
       <div class="header-brand">
-        <span class="logo" onclick="app.goHome()" title="Go to main page">Codeman</span>
+        <span class="logo" onclick="app.goHome()" title="返回主页">Codeman</span>
       </div>
 
       <!-- Session Tabs -->
-      <div class="session-tabs" id="sessionTabs" role="tablist" aria-label="Session tabs">
+      <div class="session-tabs" id="sessionTabs" role="tablist" aria-label="Session 标签页">
       </div>
 
       <div class="header-right">
-        <button class="tunnel-indicator" id="tunnelIndicator" style="display: none;" onclick="app.toggleTunnelPanel()" title="Cloudflare Tunnel" aria-label="Tunnel status">
+        <button class="tunnel-indicator" id="tunnelIndicator" style="display: none;" onclick="app.toggleTunnelPanel()" title="Cloudflare Tunnel" aria-label="Tunnel 状态">
           <span class="tunnel-dot"></span>
         </button>
         <div class="connection-indicator" id="connectionIndicator" style="display: none;">
@@ -67,11 +68,11 @@
           <span class="connection-text" id="connectionText"></span>
         </div>
         <div class="header-font-controls">
-          <button class="btn-icon-header btn-sm" onclick="app.decreaseFontSize()" title="Decrease font (Ctrl+-)" aria-label="Decrease font size">A-</button>
-          <span class="font-size-display" id="fontSizeDisplay" aria-label="Current font size">14</span>
-          <button class="btn-icon-header btn-sm" onclick="app.increaseFontSize()" title="Increase font (Ctrl++)" aria-label="Increase font size">A+</button>
+          <button class="btn-icon-header btn-sm" onclick="app.decreaseFontSize()" title="缩小字体 (Ctrl+-)" aria-label="缩小字体">A-</button>
+          <span class="font-size-display" id="fontSizeDisplay" aria-label="当前字体大小">14</span>
+          <button class="btn-icon-header btn-sm" onclick="app.increaseFontSize()" title="放大字体 (Ctrl++)" aria-label="放大字体">A+</button>
         </div>
-        <div class="header-system-stats" id="headerSystemStats" title="System resource usage">
+        <div class="header-system-stats" id="headerSystemStats" title="系统资源占用">
           <div class="stat-item">
             <span class="stat-label">CPU</span>
             <div class="stat-bar">
@@ -87,13 +88,13 @@
             <span class="stat-value" id="statMem">--</span>
           </div>
         </div>
-        <button class="btn-icon-header btn-notifications" onclick="app.toggleNotifications()" title="Notifications" aria-label="Toggle notifications">
+        <button class="btn-icon-header btn-notifications" onclick="app.toggleNotifications()" title="通知" aria-label="切换通知">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
           <span class="notification-badge" id="notifBadge" style="display:none;">0</span>
         </button>
-        <button class="btn-icon-header btn-lifecycle-log" onclick="app.openLifecycleLog()" title="Session Lifecycle Log" aria-label="Open session lifecycle log"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg></button>
-        <button class="btn-icon-header btn-settings" onclick="app.openAppSettings()" title="App Settings" aria-label="Open app settings"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>
-        <div class="header-tokens" id="headerTokens" title="Total tokens across all sessions">0 tokens</div>
+        <button class="btn-icon-header btn-lifecycle-log" onclick="app.openLifecycleLog()" title="Session 生命周期日志" aria-label="打开 Session 生命周期日志"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg></button>
+        <button class="btn-icon-header btn-settings" onclick="app.openAppSettings()" title="应用设置" aria-label="打开应用设置"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>
+        <div class="header-tokens" id="headerTokens" title="所有 Session 的累计 Token 数">0 tokens</div>
       </div>
     </header>
 
@@ -113,12 +114,12 @@
         <div class="respawn-status-col">
           <div class="respawn-status-row1">
             <span class="respawn-indicator">&#x21BB;</span>
-            <span class="respawn-state" id="respawnState">Watching</span>
+            <span class="respawn-state" id="respawnState">监控中</span>
             <span class="detection-confidence" id="detectionConfidence"></span>
             <span class="respawn-cycles">#<span id="respawnCycleCount">0</span></span>
             <span class="respawn-timer" id="respawnTimer" style="display: none;"></span>
             <span class="respawn-tokens" id="respawnTokens" style="display: none;"></span>
-            <button class="btn-icon-only" onclick="app.stopRespawn()" title="Stop Respawn" aria-label="Stop respawn">&#x25A0;</button>
+            <button class="btn-icon-only" onclick="app.stopRespawn()" title="停止 Respawn" aria-label="停止 Respawn">&#x25A0;</button>
           </div>
           <div class="respawn-status-row2" id="respawnStatusRow2">
             <span class="detection-hook" id="detectionHook" style="display: none;"></span>
@@ -151,10 +152,10 @@
             <span class="ralph-ring-text" id="ralphRingMiniText">0%</span>
           </div>
           <div class="ralph-summary-info">
-            <span class="ralph-title">Ralph / Todo Tracker</span>
+            <span class="ralph-title">Ralph / 任务追踪</span>
             <span class="ralph-status-badge" id="ralphStatusBadge">
               <span class="ralph-status-dot"></span>
-              <span class="ralph-status-text">Idle</span>
+              <span class="ralph-status-text">空闲</span>
             </span>
           </div>
           <div class="ralph-summary-stats">
@@ -165,17 +166,17 @@
         </div>
         <div class="ralph-controls">
           <div class="ralph-menu-container">
-            <button class="btn-icon-sm" onclick="event.stopPropagation(); app.toggleRalphMenu()" title="Fix Plan Menu" id="ralphMenuBtn">&#x2630;</button>
+            <button class="btn-icon-sm" onclick="event.stopPropagation(); app.toggleRalphMenu()" title="修复计划菜单" id="ralphMenuBtn">&#x2630;</button>
             <div class="ralph-dropdown" id="ralphDropdown">
-              <button onclick="event.stopPropagation(); app.showFixPlan(); app.closeRalphMenu()">View Fix Plan</button>
-              <button onclick="event.stopPropagation(); app.writeFixPlanToFile(); app.closeRalphMenu()">Write to File</button>
-              <button onclick="event.stopPropagation(); app.importFixPlanFromFile(); app.closeRalphMenu()">Import from File</button>
+              <button onclick="event.stopPropagation(); app.showFixPlan(); app.closeRalphMenu()">查看修复计划</button>
+              <button onclick="event.stopPropagation(); app.writeFixPlanToFile(); app.closeRalphMenu()">写入文件</button>
+              <button onclick="event.stopPropagation(); app.importFixPlanFromFile(); app.closeRalphMenu()">从文件导入</button>
               <hr>
-              <button onclick="event.stopPropagation(); app.resetCircuitBreaker(); app.closeRalphMenu()">Reset Circuit Breaker</button>
+              <button onclick="event.stopPropagation(); app.resetCircuitBreaker(); app.closeRalphMenu()">重置熔断器</button>
             </div>
           </div>
-          <button class="btn-icon-sm" onclick="event.stopPropagation(); app.toggleRalphDetach()" title="Detach/Attach panel" id="ralphDetachBtn">&#x29C9;</button>
-          <button class="btn-icon-sm" onclick="event.stopPropagation(); app.closeRalphTracker()" title="Close tracker">&times;</button>
+          <button class="btn-icon-sm" onclick="event.stopPropagation(); app.toggleRalphDetach()" title="分离/附着面板" id="ralphDetachBtn">&#x29C9;</button>
+          <button class="btn-icon-sm" onclick="event.stopPropagation(); app.closeRalphTracker()" title="关闭追踪器">&times;</button>
         </div>
       </div>
 
@@ -196,29 +197,29 @@
             </svg>
             <div class="ralph-ring-center">
               <div class="ralph-ring-percent" id="ralphRingPercent">0%</div>
-              <div class="ralph-ring-label">Complete</div>
+              <div class="ralph-ring-label">已完成</div>
             </div>
           </div>
           <!-- Meta Info + Tasks unified -->
           <div class="ralph-info-unified">
             <div class="ralph-info-labels">
               <div class="ralph-info-row">
-                <span class="ralph-info-label">Tasks</span>
+                <span class="ralph-info-label">任务</span>
                 <span class="ralph-tasks-count" id="ralphTasksCount">0/0</span>
               </div>
               <div class="ralph-info-row">
-                <span class="ralph-info-label">Phrase</span>
+                <span class="ralph-info-label">完成语</span>
                 <code id="ralphPhrase">--</code>
               </div>
               <div class="ralph-info-row">
-                <span class="ralph-info-label">Elapsed</span>
+                <span class="ralph-info-label">已用时</span>
                 <span id="ralphElapsed">0m</span>
               </div>
               <div class="ralph-info-row" id="ralphVersionRow" style="display: none;">
-                <span class="ralph-info-label">Plan</span>
+                <span class="ralph-info-label">计划</span>
                 <div class="ralph-version-info">
                   <span class="version-badge" id="ralphPlanVersion">v1</span>
-                  <button class="rollback-btn" id="ralphRollbackBtn" onclick="app.showPlanHistory()" title="View history">history</button>
+                  <button class="rollback-btn" id="ralphRollbackBtn" onclick="app.showPlanHistory()" title="查看历史">历史</button>
                 </div>
               </div>
             </div>
@@ -237,19 +238,19 @@
       <div class="welcome-overlay" id="welcomeOverlay">
         <div class="welcome-content">
           <h1 class="welcome-title">Codeman</h1>
-          <p class="welcome-desc">Manage AI Coding tools in persistent tmux sessions.</p>
+          <p class="welcome-desc">在持久化 tmux Session 中管理 AI 编码工具。</p>
           <div class="welcome-actions">
             <button class="welcome-btn welcome-btn-claude" onclick="app.setRunMode('claude'); app.runClaude()">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-              Run Claude Code
+              启动 Claude Code
             </button>
             <button class="welcome-btn welcome-btn-tunnel" id="welcomeTunnelBtn" onclick="app.toggleTunnelFromWelcome()">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
-              Cloudflare Tunnel
+              Cloudflare 隧道
             </button>
             <button class="welcome-btn welcome-btn-opencode" onclick="app.setRunMode('opencode'); app.runOpenCode()">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-              Run OpenCode
+              启动 OpenCode
             </button>
           </div>
           <div class="welcome-qr" id="welcomeQr" onclick="app.toggleWelcomeQrSize()">
@@ -257,11 +258,11 @@
             <div class="welcome-qr-url" id="welcomeQrUrl"></div>
           </div>
           <div class="history-sessions" id="historySessions" style="display:none">
-            <h3 class="history-title">Resume Conversation</h3>
+            <h3 class="history-title">恢复会话</h3>
             <div class="history-list" id="historyList"></div>
           </div>
-          <p class="welcome-hint">Or press <kbd>Ctrl</kbd>+<kbd>Enter</kbd> to start</p>
-          <button class="welcome-ralph-link" onclick="app.showRalphWizard()">Start Ralph Loop &rarr;</button>
+          <p class="welcome-hint">或按 <kbd>Ctrl</kbd>+<kbd>Enter</kbd> 快速开始</p>
+          <button class="welcome-ralph-link" onclick="app.showRalphWizard()">启动 Ralph Loop &rarr;</button>
         </div>
       </div>
     </main>
@@ -269,8 +270,8 @@
     <!-- Project Insights Panel (shows file-viewing Bash commands) -->
     <div class="project-insights-panel" id="projectInsightsPanel">
       <div class="project-insights-header">
-        <span class="project-insights-title">Project Insights</span>
-        <button class="btn-icon-sm" onclick="app.closeProjectInsightsPanel()" title="Close">&times;</button>
+        <span class="project-insights-title">项目洞察</span>
+        <button class="btn-icon-sm" onclick="app.closeProjectInsightsPanel()" title="关闭">&times;</button>
       </div>
       <div class="project-insights-body" id="projectInsightsList"></div>
       <div class="project-insights-resize-handle"></div>
@@ -279,18 +280,18 @@
     <!-- File Browser Panel -->
     <div class="file-browser-panel" id="fileBrowserPanel">
       <div class="file-browser-header">
-        <span class="file-browser-title">Files</span>
+        <span class="file-browser-title">文件</span>
         <div class="file-browser-actions">
-          <button class="btn-icon-sm" onclick="app.refreshFileBrowser()" title="Refresh">&#x21BB;</button>
-          <button class="btn-icon-sm" onclick="app.toggleFileBrowserExpand()" title="Expand/Collapse All" id="fileBrowserExpandBtn">&#x229E;</button>
-          <button class="btn-icon-sm" onclick="app.closeFileBrowserPanel()" title="Close">&times;</button>
+          <button class="btn-icon-sm" onclick="app.refreshFileBrowser()" title="刷新">&#x21BB;</button>
+          <button class="btn-icon-sm" onclick="app.toggleFileBrowserExpand()" title="展开/折叠全部" id="fileBrowserExpandBtn">&#x229E;</button>
+          <button class="btn-icon-sm" onclick="app.closeFileBrowserPanel()" title="关闭">&times;</button>
         </div>
       </div>
       <div class="file-browser-search">
-        <input type="text" id="fileBrowserSearch" placeholder="Filter files..." oninput="app.filterFileBrowser(this.value)">
+        <input type="text" id="fileBrowserSearch" placeholder="过滤文件..." oninput="app.filterFileBrowser(this.value)">
       </div>
       <div class="file-browser-body" id="fileBrowserTree">
-        <div class="file-browser-empty">Select a session to view files</div>
+        <div class="file-browser-empty">选择 Session 以查看文件</div>
       </div>
       <div class="file-browser-status" id="fileBrowserStatus"></div>
     </div>
@@ -316,11 +317,11 @@
         <!-- Run AI -->
         <div class="toolbar-group">
           <div class="run-btn-group">
-            <button class="btn-toolbar btn-run" id="runBtn" onclick="app.run()" title="Run (Ctrl+Enter)">
+            <button class="btn-toolbar btn-run" id="runBtn" onclick="app.run()" title="运行 (Ctrl+Enter)">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-              <span id="runBtnLabel">Run</span>
+              <span id="runBtnLabel">运行</span>
             </button>
-            <button class="btn-toolbar btn-run-gear" onclick="app.toggleRunModeMenu(event)" title="Select AI backend">
+            <button class="btn-toolbar btn-run-gear" onclick="app.toggleRunModeMenu(event)" title="选择 AI 后端">
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
             </button>
             <div class="run-mode-menu" id="runModeMenu">
@@ -331,38 +332,38 @@
                 <span class="run-mode-dot opencode"></span>OpenCode
               </button>
               <div class="run-mode-sep"></div>
-              <div class="run-mode-header">Recent Sessions</div>
+              <div class="run-mode-header">最近的 Session</div>
               <div class="run-mode-history" id="runModeHistory"></div>
             </div>
           </div>
-          <div class="tab-count-group" title="Instance count">
+          <div class="tab-count-group" title="实例数量">
             <button class="tab-count-btn" onclick="app.decrementTabCount()">−</button>
             <input type="number" id="tabCount" class="tab-count-input" value="1" min="1" max="20" readonly>
             <button class="tab-count-btn" onclick="app.incrementTabCount()">+</button>
           </div>
-          <button class="btn-toolbar btn-stop" onclick="app.stopClaude()" title="Stop (Ctrl+C)">
+          <button class="btn-toolbar btn-stop" onclick="app.stopClaude()" title="停止 (Ctrl+C)">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><rect x="4" y="4" width="16" height="16" rx="2"/></svg>
           </button>
-          <button class="btn-toolbar btn-shell" onclick="app.runShell()" title="Run Shell">
-            Run Shell
+          <button class="btn-toolbar btn-shell" onclick="app.runShell()" title="启动 Shell">
+            启动 Shell
           </button>
-          <div class="tab-count-group" title="Instance count">
+          <div class="tab-count-group" title="实例数量">
             <button class="tab-count-btn" onclick="app.decrementShellCount()">−</button>
             <input type="number" id="shellCount" class="tab-count-input" value="1" min="1" max="20" readonly>
             <button class="tab-count-btn" onclick="app.incrementShellCount()">+</button>
           </div>
           <div class="case-select-group">
-            <select id="quickStartCase" class="toolbar-select" title="Select case">
+            <select id="quickStartCase" class="toolbar-select" title="选择 Case">
               <option value="testcase">testcase</option>
             </select>
-            <button class="btn-case-add" onclick="app.showCreateCaseModal()" title="Create new case">+</button>
-            <button class="btn-case-settings" onclick="app.toggleCaseSettings()" title="Case settings">&#x2699;</button>
+            <button class="btn-case-add" onclick="app.showCreateCaseModal()" title="新建 Case">+</button>
+            <button class="btn-case-settings" onclick="app.toggleCaseSettings()" title="Case 设置">&#x2699;</button>
             <div class="case-settings-popover hidden" id="caseSettingsPopover">
               <label class="checkbox-inline">
                 <input type="checkbox" id="caseAgentTeams" onchange="app.onCaseSettingChanged()">
                 <span>Agent Teams</span>
               </label>
-              <span class="form-hint">Enable experimental Agent Teams for new sessions in this case</span>
+              <span class="form-hint">为该 Case 的新 Session 启用实验性 Agent Teams</span>
             </div>
           </div>
           <!-- Mobile-only case button + gear -->
@@ -375,8 +376,8 @@
               <line x1="8" y1="23" x2="16" y2="23"/>
             </svg>
           </button>
-          <button class="btn-settings-mobile" onclick="app.openAppSettings()" title="App Settings">&#x2699;</button>
-          <button class="btn-toolbar btn-case-mobile" onclick="app.showMobileCasePicker()" title="Select case">
+          <button class="btn-settings-mobile" onclick="app.openAppSettings()" title="应用设置">&#x2699;</button>
+          <button class="btn-toolbar btn-case-mobile" onclick="app.showMobileCasePicker()" title="选择 Case">
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
             <span id="mobileCaseName">Case</span>
           </button>
@@ -386,7 +387,7 @@
               <input type="checkbox" id="caseAgentTeamsMobile" onchange="app.onCaseSettingChangedMobile()">
               <span>Agent Teams</span>
             </label>
-            <span class="form-hint">Enable Agent Teams for new sessions</span>
+            <span class="form-hint">为新 Session 启用 Agent Teams</span>
           </div>
         </div>
 
@@ -395,7 +396,7 @@
           <button class="btn-toolbar" onclick="app.toggleDirInput()" title="Set working directory">
             <span id="dirDisplay">No directory</span>
           </button>
-          <input type="text" id="dirInput" class="toolbar-input hidden" placeholder="Working directory..." onblur="app.hideDirInput()">
+          <input type="text" id="dirInput" class="toolbar-input hidden" placeholder="工作目录..." onblur="app.hideDirInput()">
         </div>
       </div>
 
@@ -421,21 +422,21 @@
       <div class="modal-backdrop" onclick="app.closeHelp()"></div>
       <div class="modal-content">
         <div class="modal-header">
-          <h3>Keyboard Shortcuts</h3>
-          <button class="modal-close" onclick="app.closeHelp()" aria-label="Close help">&times;</button>
+          <h3>键盘快捷键</h3>
+          <button class="modal-close" onclick="app.closeHelp()" aria-label="关闭帮助">&times;</button>
         </div>
         <div class="modal-body">
           <div class="shortcuts-grid">
-            <div><kbd>Ctrl</kbd>+<kbd>Enter</kbd></div><div>Run Claude</div>
-            <div><kbd>Ctrl</kbd>+<kbd>W</kbd></div><div>Close Session</div>
-            <div><kbd>Ctrl</kbd>+<kbd>Tab</kbd></div><div>Next Session</div>
-            <div><kbd>Ctrl</kbd>+<kbd>K</kbd></div><div>Kill All Sessions + Tmux</div>
-            <div><kbd>Ctrl</kbd>+<kbd>L</kbd></div><div>Clear Terminal</div>
-            <div><kbd>Ctrl</kbd>+<kbd>+</kbd></div><div>Increase Font</div>
-            <div><kbd>Ctrl</kbd>+<kbd>-</kbd></div><div>Decrease Font</div>
-            <div><kbd>Ctrl</kbd>+<kbd>?</kbd></div><div>Show Help</div>
-            <div><kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>V</kbd></div><div>Voice Input</div>
-            <div><kbd>Escape</kbd></div><div>Close Panels</div>
+            <div><kbd>Ctrl</kbd>+<kbd>Enter</kbd></div><div>启动 Claude</div>
+            <div><kbd>Ctrl</kbd>+<kbd>W</kbd></div><div>关闭 Session</div>
+            <div><kbd>Ctrl</kbd>+<kbd>Tab</kbd></div><div>下一个 Session</div>
+            <div><kbd>Ctrl</kbd>+<kbd>K</kbd></div><div>终止全部 Session + Tmux</div>
+            <div><kbd>Ctrl</kbd>+<kbd>L</kbd></div><div>清空终端</div>
+            <div><kbd>Ctrl</kbd>+<kbd>+</kbd></div><div>放大字体</div>
+            <div><kbd>Ctrl</kbd>+<kbd>-</kbd></div><div>缩小字体</div>
+            <div><kbd>Ctrl</kbd>+<kbd>?</kbd></div><div>显示帮助</div>
+            <div><kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>V</kbd></div><div>语音输入</div>
+            <div><kbd>Escape</kbd></div><div>关闭面板</div>
           </div>
         </div>
       </div>
@@ -444,49 +445,49 @@
     <!-- Monitor Panel (Tmux Sessions + Background Tasks) -->
     <div class="monitor-panel" id="monitorPanel">
       <div class="monitor-panel-header" id="monitorPanelHeader">
-        <div class="monitor-panel-title">Monitor</div>
+        <div class="monitor-panel-title">监控</div>
         <div class="monitor-panel-actions">
-          <button class="btn-toolbar btn-sm btn-danger" onclick="app.killAllMuxSessions()" title="Kill all sessions and their tmux processes">Kill All</button>
-          <button class="btn-icon-sm" onclick="app.reconcileMuxSessions()" title="Refresh tmux sessions">&#x21BB;</button>
-          <button class="btn-icon-sm" onclick="app.toggleMonitorDetach()" title="Detach panel" id="monitorDetachBtn">&#x29C9;</button>
-          <button class="btn-icon-sm" onclick="app.toggleMonitorPanel()" title="Toggle panel" id="monitorToggleBtn">&#x25B2;</button>
-          <button class="btn-icon-sm" onclick="app.closeMonitor()" title="Close monitor">&times;</button>
+          <button class="btn-toolbar btn-sm btn-danger" onclick="app.killAllMuxSessions()" title="终止所有 Session 及其 tmux 进程">终止全部</button>
+          <button class="btn-icon-sm" onclick="app.reconcileMuxSessions()" title="刷新 tmux sessions">&#x21BB;</button>
+          <button class="btn-icon-sm" onclick="app.toggleMonitorDetach()" title="分离面板" id="monitorDetachBtn">&#x29C9;</button>
+          <button class="btn-icon-sm" onclick="app.toggleMonitorPanel()" title="切换面板" id="monitorToggleBtn">&#x25B2;</button>
+          <button class="btn-icon-sm" onclick="app.closeMonitor()" title="关闭监控">&times;</button>
         </div>
       </div>
       <div class="monitor-resize-handle" id="monitorResizeHandle"></div>
       <div class="monitor-panel-body" id="monitorTabContent">
         <div class="monitor-section">
           <div class="monitor-section-header">
-            <span>Tmux Sessions</span>
+            <span>Tmux Session</span>
           </div>
           <div class="monitor-section-body" id="muxSessionsBody">
-            <div class="monitor-empty">No mux sessions</div>
+            <div class="monitor-empty">暂无 mux session</div>
           </div>
         </div>
         <div class="monitor-section" id="monitorPlanAgentsSection" style="display: none;">
           <div class="monitor-section-header">
-            <span>Plan Wizard Agents</span>
-            <span class="task-stats" id="monitorPlanAgentStats">0 active</span>
-            <button class="btn-toolbar btn-sm btn-danger" onclick="app.cancelPlanFromMonitor()" title="Cancel plan generation">Cancel</button>
+            <span>规划向导 Agent</span>
+            <span class="task-stats" id="monitorPlanAgentStats">0 活跃</span>
+            <button class="btn-toolbar btn-sm btn-danger" onclick="app.cancelPlanFromMonitor()" title="取消规划生成">取消</button>
           </div>
           <div class="monitor-section-body" id="monitorPlanAgentsBody">
-            <div class="monitor-empty">No plan agents</div>
+            <div class="monitor-empty">暂无规划 Agent</div>
           </div>
         </div>
         <div class="monitor-section" id="monitorSubagentsSection">
           <div class="monitor-section-header">
-            <span>Background Agents</span>
-            <span class="task-stats" id="monitorSubagentStats">0 tracked</span>
-            <button class="btn-toolbar btn-sm btn-danger" onclick="app.clearAllSubagents()" title="Clear all">Clear</button>
+            <span>后台 Agent</span>
+            <span class="task-stats" id="monitorSubagentStats">0 已追踪</span>
+            <button class="btn-toolbar btn-sm btn-danger" onclick="app.clearAllSubagents()" title="清除全部">清除</button>
           </div>
           <div class="monitor-section-body" id="monitorSubagentsBody">
-            <div class="monitor-empty">No background agents</div>
+            <div class="monitor-empty">暂无后台 Agent</div>
           </div>
         </div>
         <div class="monitor-section" id="backgroundTasksSection" style="display: none;">
           <div class="monitor-section-header">
-            <span>Background Tasks</span>
-            <span class="task-stats" id="taskPanelStats">0 running</span>
+            <span>后台任务</span>
+            <span class="task-stats" id="taskPanelStats">0 运行中</span>
           </div>
           <div class="monitor-section-body" id="backgroundTasksBody">
           </div>
@@ -498,23 +499,23 @@
     <div class="subagents-panel" id="subagentsPanel">
       <div class="subagents-panel-header" id="subagentsPanelHeader">
         <div class="subagents-panel-title">
-          Subagents <span id="subagentCountBadge" class="subagent-badge"></span>
+          子 Agent <span id="subagentCountBadge" class="subagent-badge"></span>
         </div>
         <div class="subagents-panel-actions">
-          <button class="btn-toolbar btn-sm btn-danger" onclick="app.clearAllSubagents()" title="Clear all tracked subagents">Clear All</button>
-          <button class="btn-icon-sm" onclick="app.toggleSubagentsDetach()" title="Detach panel" id="subagentsDetachBtn">&#x29C9;</button>
-          <button class="btn-icon-sm" onclick="app.toggleSubagentsPanel()" title="Toggle panel" id="subagentsToggleBtn">&#x25B2;</button>
-          <button class="btn-icon-sm" onclick="app.closeSubagentsPanel()" title="Close">&times;</button>
+          <button class="btn-toolbar btn-sm btn-danger" onclick="app.clearAllSubagents()" title="清除所有已追踪的子 Agent">清除全部</button>
+          <button class="btn-icon-sm" onclick="app.toggleSubagentsDetach()" title="分离面板" id="subagentsDetachBtn">&#x29C9;</button>
+          <button class="btn-icon-sm" onclick="app.toggleSubagentsPanel()" title="切换面板" id="subagentsToggleBtn">&#x25B2;</button>
+          <button class="btn-icon-sm" onclick="app.closeSubagentsPanel()" title="关闭">&times;</button>
         </div>
       </div>
       <div class="subagents-resize-handle" id="subagentsResizeHandle"></div>
       <div class="subagents-panel-body" id="subagentsTabContent">
         <div class="subagent-container">
           <div class="subagent-list" id="subagentList">
-            <div class="subagent-empty">No background agents detected</div>
+            <div class="subagent-empty">未检测到后台 Agent</div>
           </div>
           <div class="subagent-detail" id="subagentDetail">
-            <div class="subagent-empty">Select an agent to view details</div>
+            <div class="subagent-empty">选择一个 Agent 以查看详情</div>
           </div>
         </div>
       </div>
@@ -525,15 +526,15 @@
       <div class="modal-backdrop" onclick="app.closeSessionOptions()"></div>
       <div class="modal-content">
         <div class="modal-header">
-          <h3>Session Options</h3>
-          <button class="modal-close" onclick="app.closeSessionOptions()" aria-label="Close session options">&times;</button>
+          <h3>Session 选项</h3>
+          <button class="modal-close" onclick="app.closeSessionOptions()" aria-label="关闭 Session 选项">&times;</button>
         </div>
         <!-- Modal Tabs -->
         <div class="modal-tabs">
           <button class="modal-tab-btn active" data-tab="respawn" data-claude-only onclick="app.switchOptionsTab('respawn')">Respawn</button>
-          <button class="modal-tab-btn" data-tab="context" onclick="app.switchOptionsTab('context')">Context</button>
+          <button class="modal-tab-btn" data-tab="context" onclick="app.switchOptionsTab('context')">上下文</button>
           <button class="modal-tab-btn" data-tab="ralph" data-claude-only onclick="app.switchOptionsTab('ralph')">Ralph / Todo</button>
-          <button class="modal-tab-btn" data-tab="summary" onclick="app.switchOptionsTab('summary')">Summary</button>
+          <button class="modal-tab-btn" data-tab="summary" onclick="app.switchOptionsTab('summary')">摘要</button>
         </div>
         <div class="modal-body">
           <!-- Respawn Tab Content -->
@@ -543,16 +544,16 @@
             <div class="respawn-header">
               <div class="session-respawn-status" id="sessionRespawnStatus">
                 <span class="respawn-status-indicator"></span>
-                <span class="respawn-status-text">Not active</span>
+                <span class="respawn-status-text">未激活</span>
               </div>
               <div class="respawn-actions">
-                <button class="btn-toolbar btn-success btn-sm" onclick="app.enableRespawnFromModal()" id="modalEnableRespawnBtn">Enable</button>
-                <button class="btn-toolbar btn-danger btn-sm" onclick="app.stopRespawnFromModal()" id="modalStopRespawnBtn" style="display: none;">Stop</button>
+                <button class="btn-toolbar btn-success btn-sm" onclick="app.enableRespawnFromModal()" id="modalEnableRespawnBtn">启用</button>
+                <button class="btn-toolbar btn-danger btn-sm" onclick="app.stopRespawnFromModal()" id="modalStopRespawnBtn" style="display: none;">停止</button>
               </div>
             </div>
 
             <div class="form-row">
-              <label>Duration</label>
+              <label>时长</label>
               <div class="duration-presets">
                 <button type="button" class="duration-preset-btn" data-minutes="30" onclick="app.selectDurationPreset('30')">30m</button>
                 <button type="button" class="duration-preset-btn" data-minutes="60" onclick="app.selectDurationPreset('60')">1h</button>
@@ -561,7 +562,7 @@
                 <button type="button" class="duration-preset-btn" data-minutes="480" onclick="app.selectDurationPreset('480')">8h</button>
                 <button type="button" class="duration-preset-btn active" data-minutes="" onclick="app.selectDurationPreset('')">∞</button>
                 <div class="duration-custom">
-                  <button type="button" class="duration-preset-btn" data-minutes="custom" onclick="app.selectDurationPreset('custom')">Custom</button>
+                  <button type="button" class="duration-preset-btn" data-minutes="custom" onclick="app.selectDurationPreset('custom')">自定义</button>
                   <div class="input-suffix input-suffix-sm duration-custom-input">
                     <input type="number" id="modalRespawnDuration" value="" min="1" placeholder="min">
                     <span>min</span>
@@ -570,67 +571,67 @@
               </div>
             </div>
 
-            <div class="form-section-header">Presets</div>
+            <div class="form-section-header">预设</div>
             <div class="form-row">
-              <label>Load Preset</label>
+              <label>加载预设</label>
               <div class="preset-selector">
                 <select id="respawnPresetSelect" onchange="app.updatePresetDescription()">
-                  <option value="">-- Select preset --</option>
-                  <optgroup label="Built-in" id="builtinPresetsGroup">
+                  <option value="">-- 选择预设 --</option>
+                  <optgroup label="内置" id="builtinPresetsGroup">
                   </optgroup>
-                  <optgroup label="Custom" id="customPresetsGroup">
+                  <optgroup label="自定义" id="customPresetsGroup">
                   </optgroup>
                 </select>
-                <button type="button" class="btn btn-sm" onclick="app.loadRespawnPreset()" title="Apply preset">Apply</button>
-                <button type="button" class="btn btn-sm btn-secondary" onclick="app.saveCurrentAsPreset()" title="Save current config as preset">Save As...</button>
+                <button type="button" class="btn btn-sm" onclick="app.loadRespawnPreset()" title="应用预设">应用</button>
+                <button type="button" class="btn btn-sm btn-secondary" onclick="app.saveCurrentAsPreset()" title="将当前配置保存为预设">另存为...</button>
               </div>
               <p class="form-hint" id="presetDescriptionHint"></p>
             </div>
 
-            <div class="form-section-header">Respawn Cycle</div>
+            <div class="form-section-header">Respawn 周期</div>
             <div class="form-row">
-              <label>1. Update Prompt</label>
-              <textarea id="modalRespawnPrompt" rows="3" placeholder="Prompt to send when idle" onchange="app.autoSaveRespawnConfig()" style="resize: vertical; min-height: 60px;">update all the docs and CLAUDE.md</textarea>
+              <label>1. 更新提示词</label>
+              <textarea id="modalRespawnPrompt" rows="3" placeholder="空闲时发送的提示词" onchange="app.autoSaveRespawnConfig()" style="resize: vertical; min-height: 60px;">update all the docs and CLAUDE.md</textarea>
             </div>
 
             <div class="respawn-options-row" style="margin: 8px 0;">
               <label class="checkbox-inline">
                 <input type="checkbox" id="modalRespawnSendClear" checked onchange="app.autoSaveRespawnConfig()">
-                <span>2. Send /clear</span>
+                <span>2. 发送 /clear</span>
               </label>
               <label class="checkbox-inline">
                 <input type="checkbox" id="modalRespawnSendInit" checked onchange="app.autoSaveRespawnConfig()">
-                <span>3. Send /init</span>
+                <span>3. 发送 /init</span>
               </label>
             </div>
 
             <div class="form-row">
-              <label>4. Kickstart Prompt</label>
-              <textarea id="modalRespawnKickstart" rows="2" placeholder="Optional: prompt if /init doesn't trigger work" onchange="app.autoSaveRespawnConfig()" style="resize: vertical; min-height: 40px;"></textarea>
-              <span class="form-hint">Sent only when /init completes but Claude stays idle</span>
+              <label>4. 启动提示词</label>
+              <textarea id="modalRespawnKickstart" rows="2" placeholder="可选：/init 未触发工作时发送的提示词" onchange="app.autoSaveRespawnConfig()" style="resize: vertical; min-height: 40px;"></textarea>
+              <span class="form-hint">仅当 /init 完成但 Claude 保持空闲时发送</span>
             </div>
 
-            <div class="form-section-header">Behavior</div>
+            <div class="form-section-header">行为</div>
             <div class="respawn-options-row">
               <label class="checkbox-inline">
                 <input type="checkbox" id="modalRespawnAutoAccept" checked onchange="app.autoSaveRespawnConfig()">
-                <span>Auto-accept prompts</span>
+                <span>自动接受提示</span>
               </label>
             </div>
-            <span class="form-hint">Auto-accept presses Enter for plan approvals and default question options</span>
+            <span class="form-hint">自动接受会为计划审批和默认问题选项按 Enter 键</span>
           </div>
           </div><!-- End respawn-tab -->
 
           <!-- Context Management Tab Content -->
           <div class="modal-tab-content hidden" id="context-tab">
-            <div class="form-section-header">Appearance</div>
+            <div class="form-section-header">外观</div>
             <div class="form-row">
-              <label>Session Name</label>
-              <input type="text" id="modalSessionName" maxlength="128" placeholder="Auto (directory name)" onblur="app.saveSessionName()">
-              <span class="form-hint">Custom name shown in the tab (right-click tab to rename inline)</span>
+              <label>Session 名称</label>
+              <input type="text" id="modalSessionName" maxlength="128" placeholder="自动（目录名）" onblur="app.saveSessionName()">
+              <span class="form-hint">标签页中显示的自定义名称（右键点击标签可内联重命名）</span>
             </div>
             <div class="form-row">
-              <label>Session Color</label>
+              <label>Session 颜色</label>
               <div class="color-picker" id="sessionColorPicker">
                 <button type="button" class="color-swatch" data-color="default" title="Default">
                   <span class="swatch-inner" style="background: var(--bg-hover)"></span>
@@ -659,99 +660,99 @@
               </div>
             </div>
 
-            <div class="form-section-header">Token Management</div>
+            <div class="form-section-header">Token 管理</div>
             <div class="context-settings-grid">
               <div class="context-setting">
                 <div class="context-setting-header">
                   <label class="checkbox-inline">
                     <input type="checkbox" id="modalAutoCompactEnabled" onchange="app.autoSaveAutoCompact()">
-                    <span>Auto-Compact</span>
+                    <span>自动压缩</span>
                   </label>
                   <div class="input-suffix input-suffix-sm">
                     <input type="number" id="modalAutoCompactThreshold" value="110000" min="10000" max="500000" step="10000" onchange="app.autoSaveAutoCompact()">
                     <span>tokens</span>
                   </div>
                 </div>
-                <input type="text" id="modalAutoCompactPrompt" value="" placeholder="Focus prompt (optional)" onchange="app.autoSaveAutoCompact()">
-                <span class="form-hint">Summarizes context while preserving key information</span>
+                <input type="text" id="modalAutoCompactPrompt" value="" placeholder="聚焦提示词（可选）" onchange="app.autoSaveAutoCompact()">
+                <span class="form-hint">在保留关键信息的同时对上下文进行摘要压缩</span>
               </div>
 
               <div class="context-setting">
                 <div class="context-setting-header">
                   <label class="checkbox-inline">
                     <input type="checkbox" id="modalAutoClearEnabled" onchange="app.autoSaveAutoClear()">
-                    <span>Auto-Clear</span>
+                    <span>自动清除</span>
                   </label>
                   <div class="input-suffix input-suffix-sm">
                     <input type="number" id="modalAutoClearThreshold" value="140000" min="10000" max="500000" step="10000" onchange="app.autoSaveAutoClear()">
                     <span>tokens</span>
                   </div>
                 </div>
-                <span class="form-hint">Full context reset at threshold (use higher than compact)</span>
+                <span class="form-hint">达到阈值时完全重置上下文（建议设置高于压缩阈值）</span>
               </div>
             </div>
 
-            <div class="form-section-header">File Watching</div>
+            <div class="form-section-header">文件监控</div>
             <div class="form-row form-row-switch">
-              <label>Image Watcher</label>
+              <label>图片监控</label>
               <label class="switch">
                 <input type="checkbox" id="modalImageWatcherEnabled" checked onchange="app.toggleSessionImageWatcher()">
                 <span class="slider"></span>
               </label>
-              <span class="form-hint">Auto-popup new images (screenshots, generated files) in this session's directory</span>
+              <span class="form-hint">自动弹出该 Session 目录下的新图片（截图、生成文件）</span>
             </div>
 
-            <div class="form-section-header">Performance</div>
+            <div class="form-section-header">性能</div>
             <div class="form-row form-row-switch">
-              <label>Flicker Filter</label>
+              <label>闪烁过滤</label>
               <label class="switch">
                 <input type="checkbox" id="modalFlickerFilterEnabled" onchange="app.toggleFlickerFilter()">
                 <span class="slider"></span>
               </label>
-              <span class="form-hint">Buffers output after screen clears to reduce Ink UI flickering (adds ~50ms latency)</span>
+              <span class="form-hint">屏幕清除后缓冲输出以减少 Ink UI 闪烁（增加约 50ms 延迟）</span>
             </div>
           </div><!-- End context-tab -->
 
           <!-- Ralph Wiggum Tab Content -->
           <div class="modal-tab-content hidden" id="ralph-tab">
             <div class="form-row form-row-switch">
-              <label>Enable Tracker</label>
+              <label>启用追踪器</label>
               <label class="switch">
                 <input type="checkbox" id="modalRalphEnabled">
                 <span class="slider"></span>
               </label>
-              <span class="form-hint">Auto-detects loops and todos in Claude output</span>
+              <span class="form-hint">自动检测 Claude 输出中的循环和待办事项</span>
             </div>
 
             <div class="form-row">
-              <label>Completion Phrase</label>
-              <input type="text" id="modalRalphPhrase" placeholder="e.g., COMPLETE, DONE, FINISHED">
-              <span class="form-hint">Phrase Claude outputs when loop is complete (without &lt;promise&gt; tags)</span>
+              <label>完成语</label>
+              <input type="text" id="modalRalphPhrase" placeholder="例如：COMPLETE、DONE、FINISHED">
+              <span class="form-hint">循环完成时 Claude 输出的短语（不含 &lt;promise&gt; 标签）</span>
             </div>
 
-            <div class="form-section-header">Limits</div>
+            <div class="form-section-header">限制</div>
             <div class="ralph-limits-grid">
               <div class="form-col">
-                <label>Max Iterations</label>
+                <label>最大迭代次数</label>
                 <input type="number" id="modalRalphMaxIterations" value="0" min="0" max="1000">
-                <span class="form-hint">0 = unlimited</span>
+                <span class="form-hint">0 = 无限制</span>
               </div>
               <div class="form-col">
-                <label>Max Todos</label>
+                <label>最大 Todo 数</label>
                 <input type="number" id="modalRalphMaxTodos" value="50" min="1" max="500">
-                <span class="form-hint">Per session</span>
+                <span class="form-hint">每个 Session</span>
               </div>
               <div class="form-col">
-                <label>Todo Expiration</label>
+                <label>Todo 过期时间</label>
                 <div class="input-suffix input-suffix-sm">
                   <input type="number" id="modalRalphTodoExpiration" value="60" min="1" max="1440">
-                  <span>min</span>
+                  <span>分钟</span>
                 </div>
               </div>
             </div>
 
             <div class="ralph-config-actions">
-              <button class="btn-toolbar btn-primary" onclick="app.saveRalphConfig()">Save Ralph Config</button>
+              <button class="btn-toolbar btn-primary" onclick="app.saveRalphConfig()">保存 Ralph 配置</button>
             </div>
           </div><!-- End ralph-tab -->
 
@@ -759,16 +760,16 @@
           <div class="modal-tab-content hidden" id="summary-tab">
             <!-- Filter Buttons -->
             <div class="run-summary-filters">
-              <button class="filter-btn active" data-filter="all" onclick="app.filterRunSummary('all')">All</button>
-              <button class="filter-btn" data-filter="errors" onclick="app.filterRunSummary('errors')">Errors</button>
-              <button class="filter-btn" data-filter="warnings" onclick="app.filterRunSummary('warnings')">Warnings</button>
+              <button class="filter-btn active" data-filter="all" onclick="app.filterRunSummary('all')">全部</button>
+              <button class="filter-btn" data-filter="errors" onclick="app.filterRunSummary('errors')">错误</button>
+              <button class="filter-btn" data-filter="warnings" onclick="app.filterRunSummary('warnings')">警告</button>
               <button class="filter-btn" data-filter="respawn" onclick="app.filterRunSummary('respawn')">Respawn</button>
-              <button class="filter-btn" data-filter="idle" onclick="app.filterRunSummary('idle')">Idle/Working</button>
+              <button class="filter-btn" data-filter="idle" onclick="app.filterRunSummary('idle')">空闲/工作中</button>
             </div>
 
             <!-- Timeline -->
             <div class="run-summary-timeline" id="runSummaryTimeline">
-              <p class="empty-message">Select a session to view summary</p>
+              <p class="empty-message">选择 Session 以查看摘要</p>
             </div>
 
             <!-- Footer with actions -->
@@ -777,11 +778,11 @@
               <div class="run-summary-actions">
                 <label class="auto-refresh-label">
                   <input type="checkbox" id="runSummaryAutoRefresh" onchange="app.toggleRunSummaryAutoRefresh()">
-                  Auto-refresh
+                  自动刷新
                 </label>
-                <button class="btn-toolbar btn-sm" onclick="app.refreshRunSummary()" title="Refresh summary">&#x21BB; Refresh</button>
-                <button class="btn-toolbar btn-sm" onclick="app.exportRunSummary('json')" title="Export as JSON">Export JSON</button>
-                <button class="btn-toolbar btn-sm" onclick="app.exportRunSummary('md')" title="Export as Markdown">Export MD</button>
+                <button class="btn-toolbar btn-sm" onclick="app.refreshRunSummary()" title="刷新摘要">&#x21BB; 刷新</button>
+                <button class="btn-toolbar btn-sm" onclick="app.exportRunSummary('json')" title="导出为 JSON">导出 JSON</button>
+                <button class="btn-toolbar btn-sm" onclick="app.exportRunSummary('md')" title="导出为 Markdown">导出 MD</button>
               </div>
             </div>
           </div><!-- End summary-tab -->
@@ -794,24 +795,24 @@
       <div class="modal-backdrop" onclick="app.cancelCloseSession()"></div>
       <div class="modal-content modal-sm">
         <div class="modal-header">
-          <h3>Close Session</h3>
-          <button class="modal-close" onclick="app.cancelCloseSession()" aria-label="Cancel close session">&times;</button>
+          <h3>关闭 Session</h3>
+          <button class="modal-close" onclick="app.cancelCloseSession()" aria-label="取消关闭 Session">&times;</button>
         </div>
         <div class="modal-body">
           <p class="modal-session-name" id="closeConfirmSessionName"></p>
         </div>
         <div class="close-options">
           <button class="close-option" onclick="app.confirmCloseSession(false)">
-            <span class="close-option-title">Remove Tab</span>
-            <span class="close-option-desc">Tmux session keeps running in background</span>
+            <span class="close-option-title">移除标签</span>
+            <span class="close-option-desc">Tmux session 继续在后台运行</span>
           </button>
           <button class="close-option close-option-danger" onclick="app.confirmCloseSession(true)">
-            <span class="close-option-title" id="closeConfirmKillTitle">Kill Tmux & Claude Code</span>
-            <span class="close-option-desc">Terminate the session completely</span>
+            <span class="close-option-title" id="closeConfirmKillTitle">终止 Tmux & Claude Code</span>
+            <span class="close-option-desc">彻底终止 Session</span>
           </button>
         </div>
         <div class="modal-footer-cancel">
-          <button class="btn-toolbar btn-sm" onclick="app.cancelCloseSession()">Cancel</button>
+          <button class="btn-toolbar btn-sm" onclick="app.cancelCloseSession()">取消</button>
         </div>
       </div>
     </div>
@@ -821,27 +822,27 @@
       <div class="modal-backdrop" onclick="app.closeAppSettings()"></div>
       <div class="modal-content modal-lg">
         <div class="modal-header">
-          <h3>App Settings</h3>
-          <button class="modal-close" onclick="app.closeAppSettings()" aria-label="Close app settings">&times;</button>
+          <h3>应用设置</h3>
+          <button class="modal-close" onclick="app.closeAppSettings()" aria-label="关闭应用设置">&times;</button>
         </div>
         <div class="modal-tabs">
-          <button class="modal-tab-btn active" data-tab="settings-display">Display</button>
+          <button class="modal-tab-btn active" data-tab="settings-display">显示</button>
           <button class="modal-tab-btn" data-tab="settings-claude">Claude CLI</button>
-          <button class="modal-tab-btn" data-tab="settings-models">Models</button>
-          <button class="modal-tab-btn" data-tab="settings-paths">Paths</button>
-          <button class="modal-tab-btn" data-tab="settings-notifications">Notifications</button>
-          <button class="modal-tab-btn" data-tab="settings-voice">Voice</button>
+          <button class="modal-tab-btn" data-tab="settings-models">模型</button>
+          <button class="modal-tab-btn" data-tab="settings-paths">路径</button>
+          <button class="modal-tab-btn" data-tab="settings-notifications">通知</button>
+          <button class="modal-tab-btn" data-tab="settings-voice">语音</button>
         </div>
         <div class="modal-body">
           <!-- Display Tab -->
           <div class="modal-tab-content" id="settings-display">
             <div class="settings-grid">
               <!-- Input Section -->
-              <div class="settings-section-header">Input</div>
-              <div class="settings-item settings-item-multiline" title="Shows typed characters instantly via overlay while forwarding keystrokes to the server in the background. Enables Tab completion, preserves input across tab switches, and protects against session crashes. Recommended for mobile and high-latency connections.">
+              <div class="settings-section-header">输入</div>
+              <div class="settings-item settings-item-multiline" title="通过覆盖层即时显示输入字符，同时在后台将按键转发到服务器。支持 Tab 补全，保留标签切换间的输入，防止 Session 崩溃丢失。推荐用于移动端和高延迟连接。">
                 <div class="settings-item-text">
-                  <span class="settings-item-label">Local Echo</span>
-                  <span class="settings-item-desc">Instant typing feedback with local echo</span>
+                  <span class="settings-item-label">本地回显</span>
+                  <span class="settings-item-desc">本地回显提供即时输入反馈</span>
                 </div>
                 <label class="switch switch-sm">
                   <input type="checkbox" id="appSettingsLocalEcho">
@@ -850,37 +851,37 @@
               </div>
 
               <!-- Header Displays Section -->
-              <div class="settings-section-header">Header Displays</div>
-              <div class="settings-item" title="Show A-/A+ font size buttons in header">
-                <span class="settings-item-label">Font Controls</span>
+              <div class="settings-section-header">头部显示</div>
+              <div class="settings-item" title="在头部显示 A-/A+ 字体大小按钮">
+                <span class="settings-item-label">字体控制</span>
                 <label class="switch switch-sm">
                   <input type="checkbox" id="appSettingsShowFontControls">
                   <span class="slider"></span>
                 </label>
               </div>
-              <div class="settings-item" title="Show CPU and memory usage in header">
-                <span class="settings-item-label">System Stats</span>
+              <div class="settings-item" title="在头部显示 CPU 和内存使用情况">
+                <span class="settings-item-label">系统状态</span>
                 <label class="switch switch-sm">
                   <input type="checkbox" id="appSettingsShowSystemStats" checked>
                   <span class="slider"></span>
                 </label>
               </div>
-              <div class="settings-item" title="Show total token count in header">
-                <span class="settings-item-label">Token Count</span>
+              <div class="settings-item" title="在头部显示总 Token 数">
+                <span class="settings-item-label">Token 计数</span>
                 <label class="switch switch-sm">
                   <input type="checkbox" id="appSettingsShowTokenCount" checked>
                   <span class="slider"></span>
                 </label>
               </div>
-              <div class="settings-item" title="Show estimated cost next to token count">
-                <span class="settings-item-label">Show Cost ($)</span>
+              <div class="settings-item" title="在 Token 计数旁显示预估费用">
+                <span class="settings-item-label">显示费用 ($)</span>
                 <label class="switch switch-sm">
                   <input type="checkbox" id="appSettingsShowCost">
                   <span class="slider"></span>
                 </label>
               </div>
-              <div class="settings-item" title="Show session lifecycle log button in header">
-                <span class="settings-item-label">Lifecycle Log</span>
+              <div class="settings-item" title="在头部显示 Session 生命周期日志按钮">
+                <span class="settings-item-label">生命周期日志</span>
                 <label class="switch switch-sm">
                   <input type="checkbox" id="appSettingsShowLifecycleLog">
                   <span class="slider"></span>
@@ -888,9 +889,9 @@
               </div>
 
               <!-- Tab Bar Section -->
-              <div class="settings-section-header">Tab Bar</div>
-              <div class="settings-item" title="Show folder path below tab name and allow tab bar to wrap into multiple rows">
-                <span class="settings-item-label">Tall Tabs (Name + Folder)</span>
+              <div class="settings-section-header">标签栏</div>
+              <div class="settings-item" title="在标签名下方显示文件夹路径，允许标签栏折行">
+                <span class="settings-item-label">双行标签（名称 + 目录）</span>
                 <label class="switch switch-sm">
                   <input type="checkbox" id="appSettingsTabTwoRows">
                   <span class="slider"></span>
@@ -898,30 +899,30 @@
               </div>
 
               <!-- Panels Section -->
-              <div class="settings-section-header">Panels</div>
-              <div class="settings-item" title="Show Monitor panel at bottom right">
-                <span class="settings-item-label">Monitor</span>
+              <div class="settings-section-header">面板</div>
+              <div class="settings-item" title="在右下角显示监控面板">
+                <span class="settings-item-label">监控</span>
                 <label class="switch switch-sm">
                   <input type="checkbox" id="appSettingsShowMonitor" checked>
                   <span class="slider"></span>
                 </label>
               </div>
-              <div class="settings-item" title="Show active tools and file viewers in a floating panel">
-                <span class="settings-item-label">Project Insights</span>
+              <div class="settings-item" title="在浮动面板中显示活跃工具和文件查看器">
+                <span class="settings-item-label">项目洞察</span>
                 <label class="switch switch-sm">
                   <input type="checkbox" id="appSettingsShowProjectInsights">
                   <span class="slider"></span>
                 </label>
               </div>
-              <div class="settings-item" title="Show file browser panel on the right side">
-                <span class="settings-item-label">File Browser</span>
+              <div class="settings-item" title="在右侧显示文件浏览器面板">
+                <span class="settings-item-label">文件浏览器</span>
                 <label class="switch switch-sm">
                   <input type="checkbox" id="appSettingsShowFileBrowser">
                   <span class="slider"></span>
                 </label>
               </div>
-              <div class="settings-item" title="Show the Subagents panel (independent from Monitor)">
-                <span class="settings-item-label">Subagents</span>
+              <div class="settings-item" title="显示子 Agent 面板（独立于监控面板）">
+                <span class="settings-item-label">子 Agent</span>
                 <label class="switch switch-sm">
                   <input type="checkbox" id="appSettingsShowSubagents">
                   <span class="slider"></span>
@@ -929,16 +930,16 @@
               </div>
 
               <!-- Subagent Options Section -->
-              <div class="settings-section-header">Subagent Options</div>
-              <div class="settings-item" title="Monitor Claude Code background agents in real-time">
-                <span class="settings-item-label">Enable Tracking</span>
+              <div class="settings-section-header">子 Agent 选项</div>
+              <div class="settings-item" title="实时监控 Claude Code 后台 Agent">
+                <span class="settings-item-label">启用追踪</span>
                 <label class="switch switch-sm">
                   <input type="checkbox" id="appSettingsSubagentTracking" checked>
                   <span class="slider"></span>
                 </label>
               </div>
-              <div class="settings-item" title="Only show subagent windows when their parent tab is selected">
-                <span class="settings-item-label">Active Tab Only</span>
+              <div class="settings-item" title="仅在父标签激活时显示子 Agent 窗口">
+                <span class="settings-item-label">仅当前标签</span>
                 <label class="switch switch-sm">
                   <input type="checkbox" id="appSettingsSubagentActiveTabOnly" checked>
                   <span class="slider"></span>
@@ -946,9 +947,9 @@
               </div>
 
               <!-- Image Watcher Options Section -->
-              <div class="settings-section-header">Image Watcher</div>
-              <div class="settings-item" title="Automatically detect and popup new images in session directories">
-                <span class="settings-item-label">Enable Globally</span>
+              <div class="settings-section-header">图片监控</div>
+              <div class="settings-item" title="自动检测并弹出 Session 目录中的新图片">
+                <span class="settings-item-label">全局启用</span>
                 <label class="switch switch-sm">
                   <input type="checkbox" id="appSettingsImageWatcherEnabled">
                   <span class="slider"></span>
@@ -956,23 +957,23 @@
               </div>
 
               <!-- Remote Access Section -->
-              <div class="settings-section-header">Remote Access</div>
-              <div class="settings-item" title="Expose Codeman via Cloudflare Tunnel for remote access">
-                <span class="settings-item-label">Cloudflare Tunnel</span>
+              <div class="settings-section-header">远程访问</div>
+              <div class="settings-item" title="通过 Cloudflare Tunnel 暴露 Codeman 以供远程访问">
+                <span class="settings-item-label">Cloudflare 隧道</span>
                 <label class="switch switch-sm">
                   <input type="checkbox" id="appSettingsTunnelEnabled">
                   <span class="slider"></span>
                 </label>
               </div>
               <div class="settings-item" id="tunnelUrlRow" style="display:none">
-                <span class="settings-item-label">Tunnel URL</span>
+                <span class="settings-item-label">隧道 URL</span>
                 <div style="display:flex; align-items:center; gap:8px">
                   <span id="tunnelUrlDisplay" class="settings-item-value" style="cursor:pointer; text-decoration:underline; font-family:monospace; font-size:12px" title="Click to copy"></span>
                   <button class="btn-icon-sm" id="tunnelQrBtn" onclick="app.showTunnelQR()" title="Show QR code" style="font-size:16px; padding:2px 6px; background:none; border:1px solid var(--border); border-radius:4px; cursor:pointer; color:var(--text-secondary)">⊞</button>
                 </div>
               </div>
               <div class="settings-item" id="tunnelUploadUrlRow" style="display:none">
-                <span class="settings-item-label">Upload URL</span>
+                <span class="settings-item-label">上传 URL</span>
                 <span id="tunnelUploadUrlDisplay" class="settings-item-value" style="cursor:pointer; text-decoration:underline; font-family:monospace; font-size:12px" title="Click to copy"></span>
               </div>
 
@@ -982,177 +983,177 @@
           <!-- Claude CLI Tab -->
           <div class="modal-tab-content hidden" id="settings-claude">
             <div class="form-row">
-              <label>Startup Mode</label>
+              <label>启动模式</label>
               <select id="appSettingsClaudeMode" class="form-select">
-                <option value="dangerously-skip-permissions">Skip Permissions (default)</option>
-                <option value="normal">Normal (with prompts)</option>
-                <option value="allowedTools">Allowed Tools Only</option>
+                <option value="dangerously-skip-permissions">跳过权限（默认）</option>
+                <option value="normal">正常模式（带提示）</option>
+                <option value="allowedTools">仅允许工具</option>
               </select>
-              <span class="form-hint">How Claude CLI is started in screen sessions</span>
+              <span class="form-hint">Claude CLI 在 screen session 中的启动方式</span>
             </div>
             <div class="form-row" id="allowedToolsRow" style="display: none;">
-              <label>Allowed Tools</label>
+              <label>允许的工具</label>
               <input type="text" id="appSettingsAllowedTools" placeholder="Read,Glob,Grep,Bash">
-              <span class="form-hint">Comma-separated list of tools to allow</span>
+              <span class="form-hint">以逗号分隔的允许工具列表</span>
             </div>
             <div class="form-row form-row-switch">
-              <label>Enable Ralph / Todo Tracker</label>
+              <label>启用 Ralph / Todo 追踪器</label>
               <label class="switch">
                 <input type="checkbox" id="appSettingsRalphEnabled">
                 <span class="slider"></span>
               </label>
-              <span class="form-hint">Auto-enable for new sessions (otherwise auto-enables on Ralph pattern detection)</span>
+              <span class="form-hint">为新 Session 自动启用（否则在检测到 Ralph 模式时自动启用）</span>
             </div>
             <!-- Claude Permissions Section -->
-            <div class="form-section-header">Claude Permissions</div>
+            <div class="form-section-header">Claude 权限</div>
             <div class="form-row form-row-switch">
               <label>Agent Teams</label>
               <label class="switch">
                 <input type="checkbox" id="appSettingsAgentTeams">
                 <span class="slider"></span>
               </label>
-              <span class="form-hint">Enable experimental Agent Teams for all new Claude sessions (disabled by default)</span>
+              <span class="form-hint">为所有新 Claude Session 启用实验性 Agent Teams（默认禁用）</span>
             </div>
             <!-- Nice Priority Section -->
-            <div class="form-section-header">Nice Priority</div>
+            <div class="form-section-header">进程优先级</div>
             <div class="form-row form-row-switch">
-              <label>Enable Nice Priority Reduction</label>
+              <label>启用 Nice 优先级降低</label>
               <label class="switch">
                 <input type="checkbox" id="appSettingsNiceEnabled">
                 <span class="slider"></span>
               </label>
-              <span class="form-hint">Lower priority of Claude sessions (reduces system impact, only affects new sessions)</span>
+              <span class="form-hint">降低 Claude Session 的优先级（减少系统影响，仅影响新 Session）</span>
             </div>
             <div class="form-row" id="niceValueRow">
-              <label>Nice Value</label>
+              <label>Nice 值</label>
               <input type="number" id="appSettingsNiceValue" min="-20" max="19" value="10" style="width: 80px;">
-              <span class="form-hint">Process priority (-20 to 19, higher = lower priority, default: 10)</span>
+              <span class="form-hint">进程优先级（-20 到 19，越高优先级越低，默认值：10）</span>
             </div>
           </div>
           <!-- Models Tab -->
           <div class="modal-tab-content hidden" id="settings-models">
             <div class="form-row">
-              <label>Default Model</label>
+              <label>默认模型</label>
               <select id="appSettingsDefaultModel" class="form-select">
-                <option value="opus">Opus (Most capable)</option>
-                <option value="sonnet">Sonnet (Balanced)</option>
-                <option value="haiku">Haiku (Fast & cheap)</option>
+                <option value="opus">Opus（最强能力）</option>
+                <option value="sonnet">Sonnet（均衡）</option>
+                <option value="haiku">Haiku（快速省钱）</option>
               </select>
-              <span class="form-hint">Model used for execution tasks. Optimizer suggestions are advisory only.</span>
+              <span class="form-hint">执行任务使用的模型。优化器建议仅供参考。</span>
             </div>
             <div class="form-row form-row-switch">
-              <label>Show Optimizer Recommendations</label>
+              <label>显示优化器建议</label>
               <label class="switch">
                 <input type="checkbox" id="appSettingsShowModelRecommendations" checked>
                 <span class="slider"></span>
               </label>
-              <span class="form-hint">Show what the optimizer recommends (doesn't override your choice)</span>
+              <span class="form-hint">显示优化器推荐内容（不会覆盖你的选择）</span>
             </div>
-            <div class="form-section-header">Agent Type Overrides</div>
-            <p class="form-hint" style="margin: 0 0 12px 0;">Optionally set specific models for each task type. Leave as "Use Default" to use your default model.</p>
+            <div class="form-section-header">Agent 类型覆盖</div>
+            <p class="form-hint" style="margin: 0 0 12px 0;">可选：为各类任务指定模型。留空"使用默认"则使用默认模型。</p>
             <div class="form-row">
-              <label>Explore Tasks</label>
+              <label>探索任务</label>
               <select id="appSettingsModelExplore" class="form-select">
-                <option value="">Use Default</option>
+                <option value="">使用默认</option>
                 <option value="haiku">Haiku</option>
                 <option value="sonnet">Sonnet</option>
                 <option value="opus">Opus</option>
               </select>
-              <span class="form-hint">Quick searches, codebase exploration</span>
+              <span class="form-hint">快速搜索、代码库探索</span>
             </div>
             <div class="form-row">
-              <label>Implement Tasks</label>
+              <label>实现任务</label>
               <select id="appSettingsModelImplement" class="form-select">
-                <option value="">Use Default</option>
+                <option value="">使用默认</option>
                 <option value="haiku">Haiku</option>
                 <option value="sonnet">Sonnet</option>
                 <option value="opus">Opus</option>
               </select>
-              <span class="form-hint">Code writing, feature implementation</span>
+              <span class="form-hint">代码编写、功能实现</span>
             </div>
             <div class="form-row">
-              <label>Test Tasks</label>
+              <label>测试任务</label>
               <select id="appSettingsModelTest" class="form-select">
-                <option value="">Use Default</option>
+                <option value="">使用默认</option>
                 <option value="haiku">Haiku</option>
                 <option value="sonnet">Sonnet</option>
                 <option value="opus">Opus</option>
               </select>
-              <span class="form-hint">Writing and running tests</span>
+              <span class="form-hint">编写和运行测试</span>
             </div>
             <div class="form-row">
-              <label>Review Tasks</label>
+              <label>审查任务</label>
               <select id="appSettingsModelReview" class="form-select">
-                <option value="">Use Default</option>
+                <option value="">使用默认</option>
                 <option value="haiku">Haiku</option>
                 <option value="sonnet">Sonnet</option>
                 <option value="opus">Opus</option>
               </select>
-              <span class="form-hint">Code review, quality checks</span>
+              <span class="form-hint">代码审查、质量检查</span>
             </div>
           </div>
           <!-- Paths Tab -->
           <div class="modal-tab-content hidden" id="settings-paths">
             <div class="form-row">
-              <label>Default CLAUDE.md Template</label>
+              <label>默认 CLAUDE.md 模板</label>
               <input type="text" id="appSettingsClaudeMdPath" placeholder="/path/to/CLAUDE.md template">
-              <span class="form-hint">Used when creating new cases. Leave empty for built-in template.</span>
+              <span class="form-hint">创建新 Case 时使用。留空则使用内置模板。</span>
             </div>
             <div class="form-row">
-              <label>Default Working Directory</label>
+              <label>默认工作目录</label>
               <input type="text" id="appSettingsDefaultDir" placeholder="~/projects">
-              <span class="form-hint">Default directory for new sessions.</span>
+              <span class="form-hint">新 Session 的默认目录。</span>
             </div>
           </div>
           <!-- Notifications Tab -->
           <div class="modal-tab-content hidden" id="settings-notifications">
             <div class="settings-grid">
               <!-- Master Control Section -->
-              <div class="settings-section-header">Master Control</div>
-              <div class="settings-item" title="Master toggle for all notification layers">
-                <span class="settings-item-label">Enable Notifications</span>
+              <div class="settings-section-header">主控制</div>
+              <div class="settings-item" title="所有通知层的总开关">
+                <span class="settings-item-label">启用通知</span>
                 <label class="switch switch-sm">
                   <input type="checkbox" id="appSettingsNotifEnabled" checked>
                   <span class="slider"></span>
                 </label>
               </div>
-              <div class="settings-item" title="Show OS-level notifications when tab is hidden">
-                <span class="settings-item-label">Browser</span>
+              <div class="settings-item" title="标签隐藏时显示系统级通知">
+                <span class="settings-item-label">浏览器</span>
                 <div class="settings-item-actions">
                   <label class="switch switch-sm">
                     <input type="checkbox" id="appSettingsNotifBrowser">
                     <span class="slider"></span>
                   </label>
-                  <button class="btn-toolbar btn-sm" onclick="app.notificationManager?.requestPermission()" title="Request browser notification permission">Ask</button>
+                  <button class="btn-toolbar btn-sm" onclick="app.notificationManager?.requestPermission()" title="请求浏览器通知权限">请求</button>
                   <span class="settings-status" id="notifPermissionStatus">?</span>
                 </div>
               </div>
-              <span class="form-hint" style="grid-column: 1 / -1; margin-top: -8px;">For remote access, HTTPS is required. Start with: <code>codeman web --https</code></span>
+              <span class="form-hint" style="grid-column: 1 / -1; margin-top: -8px;">远程访问需要 HTTPS。启动命令：<code>codeman web --https</code></span>
 
-              <div class="settings-item" title="OS-level push notifications — works even when tab is closed">
-                <span class="settings-item-label">Push</span>
+              <div class="settings-item" title="系统级推送通知——标签关闭时仍有效">
+                <span class="settings-item-label">推送</span>
                 <div class="settings-item-actions">
                   <label class="switch switch-sm">
                     <input type="checkbox" id="appSettingsPushEnabled">
                     <span class="slider"></span>
                   </label>
-                  <button class="btn-toolbar btn-sm" id="pushSubscribeBtn" onclick="app.togglePushSubscription()" title="Subscribe/unsubscribe to push notifications">Subscribe</button>
+                  <button class="btn-toolbar btn-sm" id="pushSubscribeBtn" onclick="app.togglePushSubscription()" title="订阅/取消订阅推送通知">订阅</button>
                   <span class="settings-status" id="pushSubscriptionStatus">off</span>
                 </div>
               </div>
-              <span class="form-hint" style="grid-column: 1 / -1; margin-top: -8px;">Works through Cloudflare tunnel. Requires HTTPS or localhost. iOS requires PWA (Add to Home Screen).</span>
+              <span class="form-hint" style="grid-column: 1 / -1; margin-top: -8px;">通过 Cloudflare 隧道工作。需要 HTTPS 或 localhost。iOS 需要 PWA（添加到主屏幕）。</span>
 
               <!-- Alerts Section -->
-              <div class="settings-section-header">Alerts</div>
-              <div class="settings-item" title="Play a short beep for critical events">
-                <span class="settings-item-label">Audio Alerts</span>
+              <div class="settings-section-header">提醒</div>
+              <div class="settings-item" title="关键事件时播放短促提示音">
+                <span class="settings-item-label">音频提醒</span>
                 <label class="switch switch-sm">
                   <input type="checkbox" id="appSettingsNotifAudio">
                   <span class="slider"></span>
                 </label>
               </div>
-              <div class="settings-item" title="Notify when a session is idle longer than this">
-                <span class="settings-item-label">Idle Threshold</span>
+              <div class="settings-item" title="Session 空闲超过此时长时通知">
+                <span class="settings-item-label">空闲阈值</span>
                 <div class="settings-item-actions">
                   <input type="number" id="appSettingsNotifStuckMins" class="settings-item-input" value="10" min="1" max="120">
                   <span style="font-size: 0.65rem; color: var(--text-muted);">min</span>
@@ -1160,25 +1161,25 @@
               </div>
 
               <!-- Notification Levels Section -->
-              <div class="settings-section-header">Notification Levels</div>
+              <div class="settings-section-header">通知级别</div>
             </div>
             <div class="settings-grid settings-grid-3col">
-              <div class="settings-item" title="Errors, crashes, agent failures">
-                <span class="settings-item-label">Critical</span>
+              <div class="settings-item" title="错误、崩溃、Agent 失败">
+                <span class="settings-item-label">严重</span>
                 <label class="switch switch-sm">
                   <input type="checkbox" id="appSettingsNotifCritical" checked>
                   <span class="slider"></span>
                 </label>
               </div>
-              <div class="settings-item" title="Completions, budget warnings, stuck sessions">
-                <span class="settings-item-label">Warning</span>
+              <div class="settings-item" title="完成、预算警告、Session 卡住">
+                <span class="settings-item-label">警告</span>
                 <label class="switch switch-sm">
                   <input type="checkbox" id="appSettingsNotifWarning" checked>
                   <span class="slider"></span>
                 </label>
               </div>
-              <div class="settings-item" title="Auto-accepts, auto-clears, agent completions">
-                <span class="settings-item-label">Info</span>
+              <div class="settings-item" title="自动接受、自动清除、Agent 完成">
+                <span class="settings-item-label">信息</span>
                 <label class="switch switch-sm">
                   <input type="checkbox" id="appSettingsNotifInfo" checked>
                   <span class="slider"></span>
@@ -1188,52 +1189,52 @@
 
             <!-- Event Type Preferences -->
             <div class="settings-grid" style="margin-top: 12px;">
-              <div class="settings-section-header">Per-Event Settings</div>
+              <div class="settings-section-header">各事件设置</div>
             </div>
             <div class="event-type-grid">
-              <div class="event-header">Event</div>
-              <div class="event-header">On</div>
-              <div class="event-header">Browser</div>
-              <div class="event-header">Push</div>
-              <div class="event-header">Sound</div>
+              <div class="event-header">事件</div>
+              <div class="event-header">开启</div>
+              <div class="event-header">浏览器</div>
+              <div class="event-header">推送</div>
+              <div class="event-header">音效</div>
 
-              <div class="event-label">Permission prompts</div>
+              <div class="event-label">权限提示</div>
               <input type="checkbox" id="eventPermissionEnabled" checked>
               <input type="checkbox" id="eventPermissionBrowser" checked>
               <input type="checkbox" id="eventPermissionPush" checked>
               <input type="checkbox" id="eventPermissionAudio" checked>
 
-              <div class="event-label">Questions from Claude</div>
+              <div class="event-label">Claude 的问题</div>
               <input type="checkbox" id="eventQuestionEnabled" checked>
               <input type="checkbox" id="eventQuestionBrowser" checked>
               <input type="checkbox" id="eventQuestionPush" checked>
               <input type="checkbox" id="eventQuestionAudio" checked>
 
-              <div class="event-label">Session idle</div>
+              <div class="event-label">Session 空闲</div>
               <input type="checkbox" id="eventIdleEnabled" checked>
               <input type="checkbox" id="eventIdleBrowser" checked>
               <input type="checkbox" id="eventIdlePush">
               <input type="checkbox" id="eventIdleAudio">
 
-              <div class="event-label">Response complete</div>
+              <div class="event-label">响应完成</div>
               <input type="checkbox" id="eventStopEnabled" checked>
               <input type="checkbox" id="eventStopBrowser">
               <input type="checkbox" id="eventStopPush">
               <input type="checkbox" id="eventStopAudio">
 
-              <div class="event-label">Respawn cycles</div>
+              <div class="event-label">Respawn 周期</div>
               <input type="checkbox" id="eventRespawnEnabled" checked>
               <input type="checkbox" id="eventRespawnBrowser">
               <input type="checkbox" id="eventRespawnPush">
               <input type="checkbox" id="eventRespawnAudio">
 
-              <div class="event-label">Task complete</div>
+              <div class="event-label">任务完成</div>
               <input type="checkbox" id="eventRalphEnabled" checked>
               <input type="checkbox" id="eventRalphBrowser" checked>
               <input type="checkbox" id="eventRalphPush">
               <input type="checkbox" id="eventRalphAudio" checked>
 
-              <div class="event-label">Subagent activity</div>
+              <div class="event-label">子 Agent 活动</div>
               <input type="checkbox" id="eventSubagentEnabled">
               <input type="checkbox" id="eventSubagentBrowser">
               <input type="checkbox" id="eventSubagentPush">
@@ -1244,33 +1245,33 @@
           <!-- Voice Tab -->
           <div class="modal-tab-content hidden" id="settings-voice">
             <div class="settings-grid">
-              <div class="settings-section-header">Provider</div>
+              <div class="settings-section-header">服务商</div>
               <div class="settings-item">
-                <span class="settings-item-label">Active Provider</span>
+                <span class="settings-item-label">当前服务商</span>
                 <span class="voice-provider-status" id="voiceProviderStatus">—</span>
               </div>
 
-              <div class="settings-section-header">Behavior</div>
+              <div class="settings-section-header">行为</div>
               <div class="settings-item" style="grid-column: 1 / -1;">
-                <span class="settings-item-label">Insert mode</span>
+                <span class="settings-item-label">插入模式</span>
                 <select id="voiceInsertMode" class="form-select" style="width: auto;">
-                  <option value="direct">Direct to input</option>
-                  <option value="compose">Compose dialog</option>
+                  <option value="direct">直接输入</option>
+                  <option value="compose">编辑对话框</option>
                 </select>
               </div>
 
               <div class="settings-section-header">Deepgram Nova-3</div>
               <div class="form-row" style="grid-column: 1 / -1;">
-                <label for="voiceDeepgramKey">API Key</label>
+                <label for="voiceDeepgramKey">API 密钥</label>
                 <div style="display: flex; gap: 6px; align-items: center;">
-                  <input type="password" id="voiceDeepgramKey" placeholder="Enter Deepgram API key" autocomplete="off" style="flex: 1; width: 100%; padding: 0.5rem 0.75rem; background: var(--bg-input); border: 1px solid var(--border); border-radius: 4px; color: var(--text); font-size: 0.8rem; font-family: inherit;">
-                  <button class="btn-toolbar btn-sm" onclick="app.toggleDeepgramKeyVisibility()" id="voiceKeyToggleBtn" type="button">Show</button>
+                  <input type="password" id="voiceDeepgramKey" placeholder="输入 Deepgram API 密钥" autocomplete="off" style="flex: 1; width: 100%; padding: 0.5rem 0.75rem; background: var(--bg-input); border: 1px solid var(--border); border-radius: 4px; color: var(--text); font-size: 0.8rem; font-family: inherit;">
+                  <button class="btn-toolbar btn-sm" onclick="app.toggleDeepgramKeyVisibility()" id="voiceKeyToggleBtn" type="button">显示</button>
                 </div>
-                <span class="form-hint">Stored locally only, never sent to server. Get a key at <a href="https://console.deepgram.com" target="_blank" rel="noopener" style="color: var(--accent);">console.deepgram.com</a></span>
+                <span class="form-hint">仅本地存储，不会发送到服务器。在 <a href="https://console.deepgram.com" target="_blank" rel="noopener" style="color: var(--accent);">console.deepgram.com</a> 获取密钥</span>
               </div>
 
               <div class="form-row" style="grid-column: 1 / -1;">
-                <label for="voiceLanguage">Language</label>
+                <label for="voiceLanguage">语言</label>
                 <select id="voiceLanguage" class="form-select">
                   <option value="en-US">English (US)</option>
                   <option value="en-GB">English (UK)</option>
@@ -1278,21 +1279,21 @@
                   <option value="fr">French</option>
                   <option value="de">German</option>
                   <option value="ja">Japanese</option>
-                  <option value="multi">Auto-detect (multi)</option>
+                  <option value="multi">自动检测（多语言）</option>
                 </select>
               </div>
 
               <div class="form-row" style="grid-column: 1 / -1;">
-                <label for="voiceKeyterms">Domain Keywords</label>
+                <label for="voiceKeyterms">领域关键词</label>
                 <input type="text" id="voiceKeyterms" placeholder="codeman, tmux, respawn, subagent" style="width: 100%; padding: 0.5rem 0.75rem; background: var(--bg-input); border: 1px solid var(--border); border-radius: 4px; color: var(--text); font-size: 0.8rem; font-family: inherit;">
-                <span class="form-hint">Comma-separated terms to boost recognition accuracy</span>
+                <span class="form-hint">以逗号分隔的术语，用于提升识别准确率</span>
               </div>
             </div>
           </div>
         </div>
         <div class="form-actions">
-          <button class="btn-toolbar" onclick="app.closeAppSettings()">Cancel</button>
-          <button class="btn-toolbar btn-primary" onclick="app.saveAppSettings()">Save</button>
+          <button class="btn-toolbar" onclick="app.closeAppSettings()">取消</button>
+          <button class="btn-toolbar btn-primary" onclick="app.saveAppSettings()">保存</button>
         </div>
       </div>
     </div>
@@ -1302,43 +1303,43 @@
       <div class="modal-backdrop" onclick="app.closeCreateCaseModal()"></div>
       <div class="modal-content modal-lg">
         <div class="modal-header">
-          <h3>Add Case</h3>
-          <button class="modal-close" onclick="app.closeCreateCaseModal()" aria-label="Close create case">&times;</button>
+          <h3>添加 Case</h3>
+          <button class="modal-close" onclick="app.closeCreateCaseModal()" aria-label="关闭创建 Case">&times;</button>
         </div>
         <div class="modal-tabs">
-          <button class="modal-tab-btn active" data-tab="case-create">Create New</button>
-          <button class="modal-tab-btn" data-tab="case-link">Link Existing</button>
+          <button class="modal-tab-btn active" data-tab="case-create">新建</button>
+          <button class="modal-tab-btn" data-tab="case-link">链接现有</button>
         </div>
         <div class="modal-body">
           <!-- Create New Tab -->
           <div class="modal-tab-content" id="case-create">
             <div class="form-row">
-              <label>Case Name</label>
+              <label>Case 名称</label>
               <input type="text" id="newCaseName" placeholder="my-project" pattern="[a-zA-Z0-9_-]+" autocomplete="off" autocapitalize="off" spellcheck="false">
-              <span class="form-hint">Letters, numbers, hyphens, underscores only. Created in ~/codeman-cases/</span>
+              <span class="form-hint">仅限字母、数字、连字符、下划线。创建在 ~/codeman-cases/</span>
             </div>
             <div class="form-row">
-              <label>Description (optional)</label>
-              <input type="text" id="newCaseDescription" placeholder="A brief description..." autocomplete="off">
+              <label>描述（可选）</label>
+              <input type="text" id="newCaseDescription" placeholder="简短描述..." autocomplete="off">
             </div>
           </div>
           <!-- Link Existing Tab -->
           <div class="modal-tab-content hidden" id="case-link">
             <div class="form-row">
-              <label>Case Name</label>
+              <label>Case 名称</label>
               <input type="text" id="linkCaseName" placeholder="my-project" pattern="[a-zA-Z0-9_-]+" autocomplete="off" autocapitalize="off" spellcheck="false">
-              <span class="form-hint">Name to identify this case in Codeman</span>
+              <span class="form-hint">在 Codeman 中识别此 Case 的名称</span>
             </div>
             <div class="form-row">
-              <label>Folder Path</label>
+              <label>文件夹路径</label>
               <input type="text" id="linkCasePath" placeholder="/home/user/projects/my-project" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false">
-              <span class="form-hint">Absolute path to an existing project folder, e.g. /home/you/my-project</span>
+              <span class="form-hint">现有项目文件夹的绝对路径，例如 /home/you/my-project</span>
             </div>
           </div>
         </div>
         <div class="form-actions">
-          <button class="btn-toolbar" onclick="app.closeCreateCaseModal()">Cancel</button>
-          <button class="btn-toolbar btn-primary" id="caseModalSubmit" onclick="app.submitCaseModal()">Create</button>
+          <button class="btn-toolbar" onclick="app.closeCreateCaseModal()">取消</button>
+          <button class="btn-toolbar btn-primary" id="caseModalSubmit" onclick="app.submitCaseModal()">创建</button>
         </div>
       </div>
     </div>
@@ -1348,8 +1349,8 @@
       <div class="modal-backdrop" onclick="app.closeMobileCasePicker()"></div>
       <div class="mobile-case-picker-sheet">
         <div class="mobile-case-picker-header">
-          <h3>Select Case</h3>
-          <button class="modal-close" onclick="app.closeMobileCasePicker()" aria-label="Close case picker">&times;</button>
+          <h3>选择 Case</h3>
+          <button class="modal-close" onclick="app.closeMobileCasePicker()" aria-label="关闭 Case 选择器">&times;</button>
         </div>
         <div class="mobile-case-picker-body">
           <div class="mobile-case-list" id="mobileCaseList">
@@ -1359,7 +1360,7 @@
         <div class="mobile-case-picker-footer">
           <button class="btn-toolbar btn-case-create-mobile" onclick="app.showCreateCaseFromMobile()">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-            Create New Case
+            新建 Case
           </button>
         </div>
       </div>
@@ -1370,9 +1371,9 @@
       <div class="modal-backdrop"></div>
       <div class="modal-content modal-wizard">
         <div class="modal-header">
-          <h3>Start Ralph Loop</h3>
+          <h3>启动 Ralph Loop</h3>
           <div class="modal-header-actions">
-            <button class="modal-close" onclick="app.closeRalphWizard()" aria-label="Close Ralph wizard">&times;</button>
+            <button class="modal-close" onclick="app.closeRalphWizard()" aria-label="关闭 Ralph 向导">&times;</button>
           </div>
         </div>
 
@@ -1380,15 +1381,15 @@
         <div class="wizard-progress">
           <div class="wizard-step active" data-step="1">
             <span class="wizard-step-number">1</span>
-            <span class="wizard-step-label">Describe</span>
+            <span class="wizard-step-label">描述</span>
           </div>
           <div class="wizard-step" data-step="2">
             <span class="wizard-step-number">2</span>
-            <span class="wizard-step-label">Plan</span>
+            <span class="wizard-step-label">计划</span>
           </div>
           <div class="wizard-step" data-step="3">
             <span class="wizard-step-number">3</span>
-            <span class="wizard-step-label">Launch</span>
+            <span class="wizard-step-label">启动</span>
           </div>
         </div>
 
@@ -1396,10 +1397,10 @@
           <!-- Step 1: Task & Completion Setup -->
           <div class="wizard-page wizard-page-compact" id="ralphWizardStep1">
             <div class="wizard-step-intro">
-              <p>Describe your task below. Claude will generate an implementation plan with testing steps.</p>
+              <p>在下方描述你的任务。Claude 将生成包含测试步骤的实现计划。</p>
             </div>
             <div class="form-row">
-              <label>What do you want to build?</label>
+              <label>你想构建什么？</label>
               <div class="textarea-with-assist">
                 <textarea
                   id="ralphTaskDescription"
@@ -1410,14 +1411,14 @@
 
             <div class="wizard-inline-row">
               <div class="wizard-inline-field">
-                <label>Working Directory <span id="existingPlanBadge" class="existing-plan-badge" style="display:none"></span></label>
+                <label>工作目录 <span id="existingPlanBadge" class="existing-plan-badge" style="display:none"></span></label>
                 <div class="case-select-inline">
                   <select id="ralphCaseSelect" class="form-select" onchange="app.onRalphCaseChange()"></select>
                   <button class="btn-toolbar btn-sm" onclick="app.showCreateCaseModal()">+</button>
                 </div>
               </div>
               <div class="wizard-inline-field wizard-inline-field-small">
-                <label>Iterations</label>
+                <label>迭代次数</label>
                 <div class="iteration-presets-compact">
                   <button type="button" class="iteration-preset-btn active" data-iterations="10" onclick="app.selectIterationPreset(10)">10</button>
                   <button type="button" class="iteration-preset-btn" data-iterations="25" onclick="app.selectIterationPreset(25)">25</button>
@@ -1442,20 +1443,20 @@
               <div class="plan-loading-content">
                 <div class="plan-spinner"></div>
                 <div class="plan-loading-text">
-                  <span class="plan-loading-title" id="planLoadingTitle">Starting Opus 4.5...</span>
+                  <span class="plan-loading-title" id="planLoadingTitle">正在启动 Opus 4.5...</span>
                   <span class="plan-loading-time" id="planLoadingTime">0s</span>
                 </div>
               </div>
-              <p class="plan-loading-hint" id="planLoadingHint">Initializing deep reasoning model</p>
+              <p class="plan-loading-hint" id="planLoadingHint">正在初始化深度推理模型</p>
               <div class="plan-loading-actions">
-                <button class="btn-toolbar btn-sm plan-cancel-btn" onclick="app.cancelPlanGeneration()">Stop</button>
-                <button class="btn-toolbar btn-sm" onclick="app.regeneratePlan()">Regenerate</button>
+                <button class="btn-toolbar btn-sm plan-cancel-btn" onclick="app.cancelPlanGeneration()">停止</button>
+                <button class="btn-toolbar btn-sm" onclick="app.regeneratePlan()">重新生成</button>
               </div>
               <!-- Auto-start toggle visible during generation -->
               <div class="plan-autostart-toggle">
                 <label class="plan-autostart-label">
                   <input type="checkbox" id="ralphAutoStartStep2" onchange="app.ralphWizardConfig.autoStart = this.checked">
-                  <span class="plan-autostart-text">Auto-launch when plan completes</span>
+                  <span class="plan-autostart-text">计划完成后自动启动</span>
                 </label>
               </div>
             </div>
@@ -1464,13 +1465,13 @@
             <div id="planGenerationError" class="plan-section hidden">
               <div class="plan-stopped-indicator" id="planStoppedIndicator">
                 <span class="plan-stopped-icon">&#x25A0;</span>
-                <span class="plan-stopped-text">Stopped</span>
+                <span class="plan-stopped-text">已停止</span>
               </div>
               <p class="plan-error-msg" id="planErrorMsg"></p>
               <div class="plan-actions">
-                <button class="btn-toolbar btn-primary" onclick="app.generatePlan()">Regenerate Plan</button>
+                <button class="btn-toolbar btn-primary" onclick="app.generatePlan()">重新生成计划</button>
               </div>
-              <p class="plan-skip-hint">Use <strong>Back</strong> to edit your task, or <strong>Next</strong> to continue without a plan</p>
+              <p class="plan-skip-hint">使用 <strong>返回</strong> 编辑任务，或使用 <strong>下一步</strong> 跳过计划继续</p>
             </div>
 
             <!-- Editor state -->
@@ -1481,11 +1482,11 @@
                   <div class="plan-option-group">
                     <label>Detail:</label>
                     <div class="plan-detail-btns">
-                      <button type="button" class="plan-detail-btn" data-detail="standard" onclick="app.setPlanDetail('standard')" title="Single-pass generation with Opus 4.5">Standard</button>
-                      <button type="button" class="plan-detail-btn active" data-detail="detailed" onclick="app.setPlanDetail('detailed')" title="Enhanced: parallel subagents + verification (slower but more thorough)">Enhanced</button>
+                      <button type="button" class="plan-detail-btn" data-detail="standard" onclick="app.setPlanDetail('standard')" title="使用 Opus 4.5 单次生成">标准</button>
+                      <button type="button" class="plan-detail-btn active" data-detail="detailed" onclick="app.setPlanDetail('detailed')" title="增强：并行子 Agent + 验证（较慢但更全面）">增强</button>
                     </div>
                   </div>
-                  <button class="btn-toolbar btn-sm" onclick="app.regeneratePlan()">Regenerate</button>
+                  <button class="btn-toolbar btn-sm" onclick="app.regeneratePlan()">重新生成</button>
                 </div>
               </div>
               <div id="planItemsList" class="plan-items-list"></div>
@@ -1495,40 +1496,40 @@
           <!-- Step 3: Preview & Launch -->
           <div class="wizard-page hidden" id="ralphWizardStep3">
             <div class="ralph-preview-section">
-              <label>Prompt Preview</label>
+              <label>提示词预览</label>
               <div class="ralph-prompt-preview" id="ralphPromptPreview"></div>
             </div>
 
             <div class="ralph-config-summary">
               <div class="config-summary-row">
-                <span class="config-label">Completion Phrase:</span>
+                <span class="config-label">完成语：</span>
                 <code id="summaryPhrase">COMPLETE</code>
               </div>
               <div class="config-summary-row">
-                <span class="config-label">Max Iterations:</span>
+                <span class="config-label">最大迭代次数：</span>
                 <span id="summaryIterations">10</span>
               </div>
               <div class="config-summary-row">
-                <span class="config-label">Case:</span>
+                <span class="config-label">Case：</span>
                 <span id="summaryCase">testcase</span>
               </div>
               <div class="config-summary-row" style="display: none;">
-                <span class="config-label">Plan:</span>
+                <span class="config-label">计划：</span>
                 <span id="summaryPlan">-</span>
               </div>
             </div>
 
             <!-- Advanced Options (Collapsible) -->
             <details class="advanced-options">
-              <summary>Advanced Options</summary>
+              <summary>高级选项</summary>
               <div class="advanced-options-content">
                 <div class="form-row form-row-switch">
-                  <label>Enable Respawn</label>
+                  <label>启用 Respawn</label>
                   <label class="switch">
                     <input type="checkbox" id="ralphEnableRespawn">
                     <span class="slider"></span>
                   </label>
-                  <span class="form-hint">Auto-restart sessions when context fills up (usually not needed)</span>
+                  <span class="form-hint">上下文满时自动重启 Session（通常不需要）</span>
                 </div>
               </div>
             </details>
@@ -1537,11 +1538,11 @@
 
         <!-- Wizard Footer -->
         <div class="wizard-footer">
-          <button class="btn-toolbar" id="ralphBackBtn" onclick="app.ralphWizardBack()" style="display: none;">Back</button>
+          <button class="btn-toolbar" id="ralphBackBtn" onclick="app.ralphWizardBack()" style="display: none;">返回</button>
           <div class="wizard-footer-right">
-            <button class="btn-toolbar" onclick="app.closeRalphWizard()">Cancel</button>
-            <button class="btn-toolbar btn-primary" id="ralphNextBtn" onclick="app.ralphWizardNext()">Next</button>
-            <button class="btn-toolbar btn-success" id="ralphStartBtn" onclick="app.startRalphLoop()" style="display: none;">Start Loop</button>
+            <button class="btn-toolbar" onclick="app.closeRalphWizard()">取消</button>
+            <button class="btn-toolbar btn-primary" id="ralphNextBtn" onclick="app.ralphWizardNext()">下一步</button>
+            <button class="btn-toolbar btn-success" id="ralphStartBtn" onclick="app.startRalphLoop()" style="display: none;">启动循环</button>
           </div>
         </div>
       </div>
@@ -1553,24 +1554,24 @@
       <div class="modal-backdrop" onclick="app.closeKillAllModal()"></div>
       <div class="modal-content modal-sm">
         <div class="modal-header">
-          <h3>Kill All Sessions</h3>
-          <button class="modal-close" onclick="app.closeKillAllModal()" aria-label="Close kill all modal">&times;</button>
+          <h3>终止全部 Session</h3>
+          <button class="modal-close" onclick="app.closeKillAllModal()" aria-label="关闭终止全部弹窗">&times;</button>
         </div>
         <div class="modal-body">
-          <p class="modal-warning-text">Choose how to close <span id="killAllCount">0</span> session(s):</p>
+          <p class="modal-warning-text">选择如何关闭 <span id="killAllCount">0</span> 个 Session：</p>
         </div>
         <div class="close-options">
           <button class="close-option" onclick="app.confirmKillAll(false)">
-            <span class="close-option-title">Remove All Tabs</span>
-            <span class="close-option-desc">Tmux sessions keep running in background</span>
+            <span class="close-option-title">移除所有标签</span>
+            <span class="close-option-desc">Tmux session 继续在后台运行</span>
           </button>
           <button class="close-option close-option-danger" onclick="app.confirmKillAll(true)">
-            <span class="close-option-title">Kill All Claude + Tmux</span>
-            <span class="close-option-desc">Terminate everything completely</span>
+            <span class="close-option-title">终止全部 Claude + Tmux</span>
+            <span class="close-option-desc">彻底终止所有内容</span>
           </button>
         </div>
         <div class="modal-footer-cancel">
-          <button class="btn-toolbar btn-sm" onclick="app.closeKillAllModal()">Cancel</button>
+          <button class="btn-toolbar btn-sm" onclick="app.closeKillAllModal()">取消</button>
         </div>
       </div>
     </div>
@@ -1578,15 +1579,15 @@
     <!-- Notification Drawer -->
     <div class="notification-drawer" id="notifDrawer">
       <div class="notif-drawer-header">
-        <span class="notif-drawer-title">Notifications</span>
+        <span class="notif-drawer-title">通知</span>
         <div class="notif-drawer-actions">
-          <button class="btn-notif-action" onclick="app.notificationManager?.markAllRead()" title="Mark all read">&#x2713;</button>
-          <button class="btn-notif-action" onclick="app.notificationManager?.clearAll()" title="Clear all">&#x1F5D1;</button>
-          <button class="btn-notif-action" onclick="app.toggleNotifications()" title="Close">&times;</button>
+          <button class="btn-notif-action" onclick="app.notificationManager?.markAllRead()" title="全部标为已读">&#x2713;</button>
+          <button class="btn-notif-action" onclick="app.notificationManager?.clearAll()" title="清除全部">&#x1F5D1;</button>
+          <button class="btn-notif-action" onclick="app.toggleNotifications()" title="关闭">&times;</button>
         </div>
       </div>
       <div class="notif-drawer-list" id="notifList"></div>
-      <div class="notif-drawer-empty" id="notifEmpty">No notifications</div>
+      <div class="notif-drawer-empty" id="notifEmpty">暂无通知</div>
     </div>
 
     <!-- Token Stats Modal -->
@@ -1594,18 +1595,18 @@
       <div class="modal-backdrop" onclick="app.closeTokenStats()"></div>
       <div class="modal-content token-stats-modal">
         <div class="modal-header">
-          <h3>Token Usage Statistics</h3>
-          <button class="modal-close" onclick="app.closeTokenStats()" aria-label="Close token statistics">&times;</button>
+          <h3>Token 使用统计</h3>
+          <button class="modal-close" onclick="app.closeTokenStats()" aria-label="关闭 Token 统计">&times;</button>
         </div>
         <div class="modal-body">
           <div class="stats-summary" id="statsSummary"></div>
           <div class="stats-chart-container">
-            <div class="stats-chart-label">Last 7 Days</div>
+            <div class="stats-chart-label">近 7 天</div>
             <div class="stats-chart" id="statsChart"></div>
             <div class="stats-chart-days" id="statsChartDays"></div>
           </div>
           <div class="stats-table-container">
-            <div class="stats-table-label">Daily Breakdown</div>
+            <div class="stats-table-label">每日明细</div>
             <div class="stats-table" id="statsTable"></div>
           </div>
         </div>
@@ -1618,22 +1619,22 @@
     <div class="modal-backdrop" onclick="app.closeSavePresetModal()"></div>
     <div class="modal-content modal-sm">
       <div class="modal-header">
-        <h3>Save Respawn Preset</h3>
-        <button class="modal-close" onclick="app.closeSavePresetModal()" aria-label="Close">&times;</button>
+        <h3>保存 Respawn 预设</h3>
+        <button class="modal-close" onclick="app.closeSavePresetModal()" aria-label="关闭">&times;</button>
       </div>
       <div class="modal-body">
         <div class="form-row">
-          <label>Preset Name</label>
-          <input type="text" id="presetNameInput" placeholder="My Custom Preset" maxlength="30">
+          <label>预设名称</label>
+          <input type="text" id="presetNameInput" placeholder="我的自定义预设" maxlength="30">
         </div>
         <div class="form-row">
-          <label>Description (optional)</label>
-          <input type="text" id="presetDescriptionInput" placeholder="When to use this preset" maxlength="100">
+          <label>描述（可选）</label>
+          <input type="text" id="presetDescriptionInput" placeholder="适用场景说明" maxlength="100">
         </div>
       </div>
       <div class="modal-footer">
-        <button class="btn btn-secondary" onclick="app.closeSavePresetModal()">Cancel</button>
-        <button class="btn btn-primary" onclick="app.confirmSavePreset()">Save Preset</button>
+        <button class="btn btn-secondary" onclick="app.closeSavePresetModal()">取消</button>
+        <button class="btn btn-primary" onclick="app.confirmSavePreset()">保存预设</button>
       </div>
     </div>
   </div>
@@ -1641,41 +1642,41 @@
   <!-- Session Lifecycle Audit Log (floating window) -->
   <div id="lifecycleWindow" style="display:none;position:fixed;z-index:2000;top:60px;left:50%;transform:translateX(-50%);width:900px;max-width:95vw;min-width:400px;min-height:250px;height:520px;background:#111;border:1px solid #333;border-radius:8px;box-shadow:0 8px 32px rgba(0,0,0,0.6);resize:both;overflow:hidden">
     <div id="lifecycleWindowHeader" style="display:flex;align-items:center;justify-content:space-between;padding:6px 12px;background:#1a1a2e;border-bottom:1px solid #333;cursor:move;user-select:none;border-radius:8px 8px 0 0">
-      <span style="color:#e0e0e0;font-size:13px;font-weight:600">Session Lifecycle Log</span>
+      <span style="color:#e0e0e0;font-size:13px;font-weight:600">Session 生命周期日志</span>
       <div style="display:flex;gap:8px;align-items:center">
         <div style="display:flex;gap:6px;flex-wrap:nowrap">
           <select id="lifecycleFilterEvent" style="background:#0d0d0d;color:#e0e0e0;border:1px solid #444;border-radius:4px;padding:2px 6px;font-size:11px">
-            <option value="">All Events</option>
-            <option value="created">Created</option>
-            <option value="started">Started</option>
-            <option value="exit">Exit</option>
-            <option value="deleted">Deleted</option>
-            <option value="recovered">Recovered</option>
-            <option value="stale_cleaned">Stale Cleaned</option>
-            <option value="mux_died">Mux Died</option>
-            <option value="server_started">Server Started</option>
-            <option value="server_stopped">Server Stopped</option>
+            <option value="">全部事件</option>
+            <option value="created">已创建</option>
+            <option value="started">已启动</option>
+            <option value="exit">已退出</option>
+            <option value="deleted">已删除</option>
+            <option value="recovered">已恢复</option>
+            <option value="stale_cleaned">过期清理</option>
+            <option value="mux_died">Mux 终止</option>
+            <option value="server_started">服务器启动</option>
+            <option value="server_stopped">服务器停止</option>
           </select>
           <input id="lifecycleFilterSession" type="text" placeholder="Session ID..." style="background:#0d0d0d;color:#e0e0e0;border:1px solid #444;border-radius:4px;padding:2px 6px;font-size:11px;width:120px">
-          <button onclick="app.loadLifecycleLog()" style="background:#333;color:#ccc;border:1px solid #444;border-radius:4px;padding:2px 8px;font-size:11px;cursor:pointer">Refresh</button>
+          <button onclick="app.loadLifecycleLog()" style="background:#333;color:#ccc;border:1px solid #444;border-radius:4px;padding:2px 8px;font-size:11px;cursor:pointer">刷新</button>
         </div>
-        <button onclick="app.closeLifecycleLog()" style="background:none;border:none;color:#888;font-size:18px;cursor:pointer;padding:0 4px;line-height:1" aria-label="Close">&times;</button>
+        <button onclick="app.closeLifecycleLog()" style="background:none;border:none;color:#888;font-size:18px;cursor:pointer;padding:0 4px;line-height:1" aria-label="关闭">&times;</button>
       </div>
     </div>
     <div style="overflow:auto;height:calc(100% - 36px);padding:4px 0">
       <table id="lifecycleTable" style="width:100%;border-collapse:collapse;font-size:12px;font-family:monospace">
         <thead>
           <tr style="color:#888;text-align:left;border-bottom:1px solid #333;position:sticky;top:0;background:#111">
-            <th style="padding:4px 8px">Time</th>
-            <th style="padding:4px 8px">Event</th>
+            <th style="padding:4px 8px">时间</th>
+            <th style="padding:4px 8px">事件</th>
             <th style="padding:4px 8px">Session</th>
-            <th style="padding:4px 8px">Reason</th>
-            <th style="padding:4px 8px">Extra</th>
+            <th style="padding:4px 8px">原因</th>
+            <th style="padding:4px 8px">附加信息</th>
           </tr>
         </thead>
         <tbody id="lifecycleTableBody"></tbody>
       </table>
-      <div id="lifecycleEmpty" style="color:#666;text-align:center;padding:20px;display:none">No lifecycle entries found</div>
+      <div id="lifecycleEmpty" style="color:#666;text-align:center;padding:20px;display:none">暂无生命周期记录</div>
     </div>
   </div>
 

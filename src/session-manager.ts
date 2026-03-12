@@ -26,6 +26,7 @@ import { EventEmitter } from 'node:events';
 import { Session } from './session.js';
 import { getStore } from './state-store.js';
 import { SessionState } from './types.js';
+import { checkResourceAvailability } from './resource-monitor.js';
 
 /**
  * Events emitted by SessionManager
@@ -126,6 +127,12 @@ export class SessionManager extends EventEmitter {
       // Check limit INSIDE the lock to prevent race conditions
       if (this.sessions.size >= config.maxConcurrentSessions) {
         throw new Error(`Maximum concurrent sessions (${config.maxConcurrentSessions}) reached`);
+      }
+
+      // Reject new sessions when system is under heavy load
+      const resourceError = checkResourceAvailability();
+      if (resourceError) {
+        throw new Error(resourceError);
       }
 
       const session = new Session({ workingDir });

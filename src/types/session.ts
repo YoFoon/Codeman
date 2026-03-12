@@ -145,6 +145,12 @@ export interface SessionState {
   openCodeConfig?: OpenCodeConfig;
   /** Claude conversation session ID to resume after reboot (set by restore script) */
   resumeSessionId?: string;
+  /** Whether this session is currently quota-limited by Claude API */
+  quotaLimited?: boolean;
+  /** Timestamp when quota-limited status was detected */
+  quotaLimitedAt?: number;
+  /** Next retry attempt timestamp for quota recovery */
+  quotaRetryAt?: number;
 }
 
 /**

@@ -671,6 +671,15 @@ class CodemanApp {
       this.terminal.scrollLines(lines);
     }, { passive: false });
 
+    // Mobile tap-to-focus: explicitly focus xterm.js on tap so the virtual keyboard
+    // stays active for input. Without this, tapping the terminal after a brief
+    // inactivity may not re-activate the keyboard on iOS/Android.
+    if (MobileDetection.isTouchDevice()) {
+      container.addEventListener('touchend', () => {
+        this.terminal.focus();
+      }, { passive: true });
+    }
+
     // Touch scrolling - only use custom JS scrolling on desktop
     // Mobile uses native browser scrolling via CSS touch-action: pan-y
     const isMobileDevice = MobileDetection.isTouchDevice() && window.innerWidth < 1024;
@@ -2044,7 +2053,7 @@ class CodemanApp {
 
   _onSessionAutoClear(data) {
     if (data.sessionId === this.activeSessionId) {
-      this.showToast(`Auto-cleared at ${data.tokens.toLocaleString()} tokens`, 'info');
+      this.showToast(`已在 ${data.tokens.toLocaleString()} tokens 时自动清除`, 'info');
       this.updateRespawnTokens(0);
     }
     const session = this.sessions.get(data.sessionId);
@@ -2085,7 +2094,7 @@ class CodemanApp {
   _onScheduledCompleted(data) {
     this.currentRun = data;
     this.hideTimer();
-    this.showToast('Scheduled run completed!', 'success');
+    this.showToast('定时任务已完成！', 'success');
   }
 
   _onScheduledStopped() {
@@ -2129,11 +2138,11 @@ class CodemanApp {
   _onRespawnBlocked(data) {
     const session = this.sessions.get(data.sessionId);
     const reasonMap = {
-      circuit_breaker_open: 'Circuit Breaker Open',
-      exit_signal: 'Exit Signal Detected',
-      status_blocked: 'Claude Reported BLOCKED',
+      circuit_breaker_open: '熔断器已开启',
+      exit_signal: '检测到退出信号',
+      status_blocked: 'Claude 报告 BLOCKED',
     };
-    const title = reasonMap[data.reason] || 'Respawn Blocked';
+    const title = reasonMap[data.reason] || 'Respawn 已阻断';
     this.notificationManager?.notify({
       urgency: 'critical',
       category: 'respawn-blocked',
@@ -2289,7 +2298,7 @@ class CodemanApp {
   _onMuxDied(data) {
     this.muxSessions = this.muxSessions.filter(s => s.sessionId !== data.sessionId);
     this.renderMuxSessions();
-    this.showToast('Mux session died: ' + this.getShortId(data.sessionId), 'warning');
+    this.showToast('Mux session 已终止：' + this.getShortId(data.sessionId), 'warning');
   }
 
   _onMuxStatsUpdated(data) {
@@ -2684,11 +2693,11 @@ class CodemanApp {
     if (welcomeVisible) {
       // On welcome screen: QR appears inline, expanded first
       this._updateWelcomeTunnelBtn(true, data.url, true);
-      this.showToast(`Tunnel active`, 'success');
+      this.showToast(`Tunnel 已激活`, 'success');
     } else {
       // Not on welcome screen: popup QR overlay
       this._updateWelcomeTunnelBtn(true, data.url);
-      this.showToast(`Tunnel active: ${data.url}`, 'success');
+      this.showToast(`Tunnel 已激活：${data.url}`, 'success');
       this.showTunnelQR();
     }
   }
@@ -2720,7 +2729,7 @@ class CodemanApp {
   _onTunnelError(data) {
     console.warn('[Tunnel] Error:', data.message);
     this._dismissTunnelConnecting();
-    this.showToast(`Tunnel error: ${data.message}`, 'error');
+    this.showToast(`Tunnel 错误：${data.message}`, 'error');
     const btn = document.getElementById('welcomeTunnelBtn');
     if (btn) { btn.disabled = false; btn.classList.remove('connecting'); }
   }
@@ -2752,12 +2761,12 @@ class CodemanApp {
   _onTunnelQrAuthUsed(data) {
     const ua = data.ua || 'Unknown device';
     const family = ua.match(/Chrome|Firefox|Safari|Edge|Mobile/)?.[0] || 'Browser';
-    this.showToast(`Device authenticated via QR (${family}, ${data.ip}). Not you?`, 'warning', {
+    this.showToast(`设备通过 QR 码验证登录（${family}，${data.ip}）。不是你？`, 'warning', {
       duration: 10000,
-      action: { label: 'Revoke All', onClick: () => {
+      action: { label: '撤销全部', onClick: () => {
         fetch('/api/auth/revoke', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' })
-          .then(() => this.showToast('All sessions revoked', 'success'))
-          .catch(() => this.showToast('Failed to revoke sessions', 'error'));
+          .then(() => this.showToast('已撤销全部 session', 'success'))
+          .catch(() => this.showToast('撤销 session 失败', 'error'));
       }},
     });
   }
@@ -2782,10 +2791,10 @@ class CodemanApp {
 
     if (titleEl && data.phase) {
       const phaseLabels = {
-        'parallel-analysis': 'Running parallel analysis...',
-        'subagent': data.detail || 'Subagent working...',
-        'synthesis': 'Synthesizing results...',
-        'verification': 'Running verification...',
+        'parallel-analysis': '并行分析中...',
+        'subagent': data.detail || '子代理工作中...',
+        'synthesis': '综合分析中...',
+        'verification': '验证中...',
       };
       titleEl.textContent = phaseLabels[data.phase] || data.phase;
     }
@@ -2923,7 +2932,7 @@ class CodemanApp {
     if (status === 'connected' && hasQueue) {
       // Draining
       dot.classList.add('draining');
-      text.textContent = `Sending ${formatBytes(totalBytes)}...`;
+      text.textContent = `发送中 ${formatBytes(totalBytes)}...`;
     } else if (status === 'reconnecting') {
       dot.classList.add('reconnecting');
       text.textContent = hasQueue ? `Reconnecting (${formatBytes(totalBytes)} queued)` : 'Reconnecting...';
@@ -3196,13 +3205,20 @@ class CodemanApp {
   _updateActiveTabImmediate(sessionId) {
     const container = this.$('sessionTabs');
     if (!container) return;
+    let activeTabEl = null;
     const tabs = container.querySelectorAll('.session-tab[data-id]');
     for (const tab of tabs) {
       if (tab.dataset.id === sessionId) {
         tab.classList.add('active');
+        activeTabEl = tab;
       } else {
         tab.classList.remove('active');
       }
+    }
+    // On mobile, scroll the active tab into the center of the tab bar so the
+    // user can always see which session is active without manual scrolling.
+    if (activeTabEl && MobileDetection.isTouchDevice()) {
+      activeTabEl.scrollIntoView({ inline: 'center', block: 'nearest', behavior: 'smooth' });
     }
   }
 
@@ -3998,12 +4014,12 @@ class CodemanApp {
       this.renderSessionTabs();
 
       if (killMux) {
-        this.showToast('Session closed and tmux killed', 'success');
+        this.showToast('Session 已关闭并终止 tmux', 'success');
       } else {
-        this.showToast('Tab hidden, tmux still running', 'info');
+        this.showToast('标签页已隐藏，tmux 仍在运行', 'info');
       }
     } catch (err) {
-      this.showToast('Failed to close session', 'error');
+      this.showToast('关闭 session 失败', 'error');
     }
   }
 
@@ -4260,7 +4276,7 @@ class CodemanApp {
   async _loadRunModeHistory() {
     const container = document.getElementById('runModeHistory');
     if (!container) return;
-    container.innerHTML = '<div class="run-mode-hist-empty">Loading...</div>';
+    container.innerHTML = '<div class="run-mode-hist-empty">加载中...</div>';
 
     try {
       const res = await fetch('/api/history/sessions');
@@ -4268,7 +4284,7 @@ class CodemanApp {
       const sessions = data.sessions || [];
 
       if (sessions.length === 0) {
-        container.innerHTML = '<div class="run-mode-hist-empty">No history</div>';
+        container.innerHTML = '<div class="run-mode-hist-empty">暂无历史记录</div>';
         return;
       }
 
@@ -4496,7 +4512,7 @@ class CodemanApp {
     } else {
       // First tap — enter confirm state
       btn.dataset.origHtml = btn.innerHTML;
-      btn.textContent = 'Tap again';
+      btn.textContent = '再次点击';
       btn.classList.add('confirming');
       this._stopConfirmTimer = setTimeout(() => {
         this._stopConfirmTimer = null;
@@ -4653,7 +4669,7 @@ class CodemanApp {
       btn.style.display = '';
 
       const value = input.value.trim();
-      document.getElementById('dirDisplay').textContent = value || 'No directory';
+      document.getElementById('dirDisplay').textContent = value || '未指定目录';
     }, 100);
   }
 
@@ -4682,19 +4698,19 @@ class CodemanApp {
   // Human-friendly state labels
   getStateLabel(state) {
     const labels = {
-      'stopped': 'Stopped',
-      'watching': 'Watching',
-      'confirming_idle': 'Confirming idle',
-      'ai_checking': 'AI checking',
-      'sending_update': 'Sending prompt',
-      'waiting_update': 'Running prompt',
-      'sending_clear': 'Clearing context',
-      'waiting_clear': 'Clearing...',
-      'sending_init': 'Initializing',
-      'waiting_init': 'Initializing...',
-      'monitoring_init': 'Waiting for work',
-      'sending_kickstart': 'Kickstarting',
-      'waiting_kickstart': 'Kickstarting...',
+      'stopped': '已停止',
+      'watching': '监控中',
+      'confirming_idle': '确认空闲',
+      'ai_checking': 'AI 检测中',
+      'sending_update': '发送提示词',
+      'waiting_update': '执行提示词',
+      'sending_clear': '清除上下文',
+      'waiting_clear': '清除中...',
+      'sending_init': '初始化中',
+      'waiting_init': '初始化...',
+      'monitoring_init': '等待任务',
+      'sending_kickstart': '启动中',
+      'waiting_kickstart': '启动中...',
     };
     return labels[state] || state.replace(/_/g, ' ');
   }
@@ -4843,7 +4859,7 @@ class CodemanApp {
     const remaining = Math.max(0, timer.endAt - now);
 
     if (remaining <= 0) {
-      this.$('respawnTimer').textContent = 'Time up';
+      this.$('respawnTimer').textContent = '时间到';
       delete this.respawnTimers[this.activeSessionId];
       this.hideRespawnTimer();
       return;
@@ -5088,7 +5104,7 @@ class CodemanApp {
       delete this.respawnTimers[this.activeSessionId];
       this.clearCountdownTimers(this.activeSessionId);
     } catch (err) {
-      this.showToast('Failed to stop respawn', 'error');
+      this.showToast('停止 respawn 失败', 'error');
     }
   }
 
@@ -5098,7 +5114,7 @@ class CodemanApp {
 
   async killActiveSession() {
     if (!this.activeSessionId) {
-      this.showToast('No active session', 'warning');
+      this.showToast('没有活跃的 session', 'warning');
       return;
     }
     await this.closeSession(this.activeSessionId);
@@ -5107,7 +5123,7 @@ class CodemanApp {
   async killAllSessions() {
     if (this.sessions.size === 0) return;
 
-    if (!confirm(`Kill all ${this.sessions.size} session(s)?`)) return;
+    if (!confirm(`确认终止全部 ${this.sessions.size} 个 session？`)) return;
 
     try {
       await this._apiDelete('/api/sessions');
@@ -5124,9 +5140,9 @@ class CodemanApp {
       this.renderSessionTabs();
       this.terminal.clear();
       this.showWelcome();
-      this.showToast('All sessions killed', 'success');
+      this.showToast('已终止全部 session', 'success');
     } catch (err) {
-      this.showToast('Failed to kill sessions', 'error');
+      this.showToast('终止 session 失败', 'error');
     }
   }
 
@@ -5145,13 +5161,13 @@ class CodemanApp {
    */
   async restoreTerminalSize() {
     if (!this.activeSessionId) {
-      this.showToast('No active session', 'warning');
+      this.showToast('没有活跃的 session', 'warning');
       return;
     }
 
     const dims = this.getTerminalDimensions();
     if (!dims) {
-      this.showToast('Could not determine terminal size', 'error');
+      this.showToast('无法获取终端尺寸', 'error');
       return;
     }
 
@@ -5166,10 +5182,10 @@ class CodemanApp {
         body: JSON.stringify({ input: '\x0c' })
       });
 
-      this.showToast(`Terminal restored to ${dims.cols}x${dims.rows}`, 'success');
+      this.showToast(`终端已恢复至 ${dims.cols}x${dims.rows}`, 'success');
     } catch (err) {
       console.error('Failed to restore terminal size:', err);
-      this.showToast('Failed to restore terminal size', 'error');
+      this.showToast('恢复终端尺寸失败', 'error');
     }
   }
 
@@ -5204,9 +5220,9 @@ class CodemanApp {
         if (line) text += line.translateToString(true) + '\n';
       }
       await navigator.clipboard.writeText(text.replace(/\n+$/, '\n'));
-      this.showToast('Copied to clipboard', 'success');
+      this.showToast('已复制到剪贴板', 'success');
     } catch (err) {
-      this.showToast('Failed to copy', 'error');
+      this.showToast('复制失败', 'error');
     }
   }
 
@@ -5323,7 +5339,7 @@ class CodemanApp {
     try {
       await fetch(`/api/scheduled/${this.currentRun.id}`, { method: 'DELETE' });
     } catch (err) {
-      this.showToast('Failed to stop run', 'error');
+      this.showToast('停止运行失败', 'error');
     }
   }
 
@@ -5417,7 +5433,7 @@ class CodemanApp {
       stopBtn.style.display = '';
     } else {
       respawnStatus.classList.remove('active');
-      respawnStatus.querySelector('.respawn-status-text').textContent = 'Not active';
+      respawnStatus.querySelector('.respawn-status-text').textContent = '未启用';
       enableBtn.style.display = '';
       stopBtn.style.display = 'none';
     }
@@ -5502,7 +5518,7 @@ class CodemanApp {
     try {
       await this._apiPut(`/api/sessions/${this.editingSessionId}/name`, { name });
     } catch (err) {
-      this.showToast('Failed to save session name: ' + err.message, 'error');
+      this.showToast('保存 session 名称失败：' + err.message, 'error');
     }
   }
 
@@ -5537,9 +5553,9 @@ class CodemanApp {
       if (session) {
         session.imageWatcherEnabled = enabled;
       }
-      this.showToast(`Image watcher ${enabled ? 'enabled' : 'disabled'}`, 'success');
+      this.showToast(`图像监控已${enabled ? '启用' : '停用'}`, 'success');
     } catch (err) {
-      this.showToast('Failed to toggle image watcher', 'error');
+      this.showToast('切换图像监控失败', 'error');
     }
   }
 
@@ -5553,9 +5569,9 @@ class CodemanApp {
       if (session) {
         session.flickerFilterEnabled = enabled;
       }
-      this.showToast(`Flicker filter ${enabled ? 'enabled' : 'disabled'}`, 'success');
+      this.showToast(`闪烁过滤已${enabled ? '启用' : '停用'}`, 'success');
     } catch (err) {
-      this.showToast('Failed to toggle flicker filter', 'error');
+      this.showToast('切换闪烁过滤失败', 'error');
     }
   }
 
@@ -5706,7 +5722,7 @@ class CodemanApp {
     const select = document.getElementById('respawnPresetSelect');
     const presetId = select?.value;
     if (!presetId) {
-      this.showToast('Please select a preset first', 'warning');
+      this.showToast('请先选择一个预设', 'warning');
       return;
     }
 
@@ -5730,7 +5746,7 @@ class CodemanApp {
     select.value = '';
     document.getElementById('presetDescriptionHint').textContent = '';
 
-    this.showToast(`Loaded preset: ${preset.name}`, 'info');
+    this.showToast(`已加载预设：${preset.name}`, 'info');
   }
 
   saveCurrentAsPreset() {
@@ -5747,7 +5763,7 @@ class CodemanApp {
   confirmSavePreset() {
     const name = document.getElementById('presetNameInput').value.trim();
     if (!name) {
-      this.showToast('Please enter a preset name', 'error');
+      this.showToast('请输入预设名称', 'error');
       return;
     }
 
@@ -5780,21 +5796,21 @@ class CodemanApp {
     this.saveRespawnPresets(presets);
     this.renderPresetDropdown();
     this.closeSavePresetModal();
-    this.showToast(`Saved preset: ${name}`, 'success');
+    this.showToast(`预设已保存：${name}`, 'success');
   }
 
   deletePreset(presetId) {
     const presets = this.loadRespawnPresets();
     const preset = presets.find(p => p.id === presetId);
     if (!preset || preset.builtIn) {
-      this.showToast('Cannot delete built-in presets', 'warning');
+      this.showToast('内置预设不可删除', 'warning');
       return;
     }
 
     const filtered = presets.filter(p => p.id !== presetId);
     this.saveRespawnPresets(filtered);
     this.renderPresetDropdown();
-    this.showToast(`Deleted preset: ${preset.name}`, 'success');
+    this.showToast(`预设已删除：${preset.name}`, 'success');
   }
 
   // Get respawn config from modal inputs
@@ -5835,7 +5851,7 @@ class CodemanApp {
 
   async enableRespawnFromModal() {
     if (!this.editingSessionId) {
-      this.showToast('No session selected', 'warning');
+      this.showToast('未选择 session', 'warning');
       return;
     }
 
@@ -5880,13 +5896,13 @@ class CodemanApp {
       // Update UI
       const respawnStatus = document.getElementById('sessionRespawnStatus');
       respawnStatus.classList.add('active');
-      respawnStatus.querySelector('.respawn-status-text').textContent = 'WATCHING';
+      respawnStatus.querySelector('.respawn-status-text').textContent = '监控中';
       document.getElementById('modalEnableRespawnBtn').style.display = 'none';
       document.getElementById('modalStopRespawnBtn').style.display = '';
 
-      this.showToast('Respawn enabled', 'success');
+      this.showToast('Respawn 已启用', 'success');
     } catch (err) {
-      this.showToast('Failed to enable respawn: ' + err.message, 'error');
+      this.showToast('启用 respawn 失败：' + err.message, 'error');
     }
   }
 
@@ -5899,13 +5915,13 @@ class CodemanApp {
       // Update the modal display
       const respawnStatus = document.getElementById('sessionRespawnStatus');
       respawnStatus.classList.remove('active');
-      respawnStatus.querySelector('.respawn-status-text').textContent = 'Not active';
+      respawnStatus.querySelector('.respawn-status-text').textContent = '未启用';
       document.getElementById('modalEnableRespawnBtn').style.display = '';
       document.getElementById('modalStopRespawnBtn').style.display = 'none';
 
-      this.showToast('Respawn stopped', 'success');
+      this.showToast('Respawn 已停止', 'success');
     } catch (err) {
-      this.showToast('Failed to stop respawn', 'error');
+      this.showToast('停止 respawn 失败', 'error');
     }
   }
 
@@ -5958,10 +5974,10 @@ class CodemanApp {
           });
         }
       } else {
-        this.showToast('Failed to set session color', 'error');
+        this.showToast('设置 session 颜色失败', 'error');
       }
     } catch (err) {
-      this.showToast('Failed to set session color', 'error');
+      this.showToast('设置 session 颜色失败', 'error');
     }
   }
 
@@ -6028,7 +6044,7 @@ class CodemanApp {
 
   exportRunSummary(format) {
     if (!this.runSummaryData) {
-      this.showToast('No summary data to export', 'error');
+      this.showToast('没有可导出的摘要数据', 'error');
       return;
     }
 
@@ -6060,12 +6076,12 @@ class CodemanApp {
 
       md += `## Event Timeline\n\n`;
       if (events.length === 0) {
-        md += `No events recorded.\n`;
+        md += `暂无事件记录。\n`;
       } else {
         md += `| Time | Type | Severity | Title | Details |\n`;
         md += `|------|------|----------|-------|----------|\n`;
         for (const event of events) {
-          const time = new Date(event.timestamp).toLocaleTimeString('en-US', { hour12: false });
+          const time = new Date(event.timestamp).toLocaleTimeString('zh-CN', { hour12: false });
           const details = event.details ? event.details.replace(/\|/g, '\\|') : '-';
           md += `| ${time} | ${event.type} | ${event.severity} | ${event.title} | ${details} |\n`;
         }
@@ -6074,7 +6090,7 @@ class CodemanApp {
       this.downloadFile(`${filename}.md`, md, 'text/markdown');
     }
 
-    this.showToast(`Exported as ${format.toUpperCase()}`, 'success');
+    this.showToast(`已导出为 ${format.toUpperCase()}`, 'success');
   }
 
   downloadFile(filename, content, mimeType) {
@@ -6091,14 +6107,14 @@ class CodemanApp {
 
   async loadRunSummary(sessionId) {
     const timeline = document.getElementById('runSummaryTimeline');
-    timeline.innerHTML = '<p class="empty-message">Loading summary...</p>';
+    timeline.innerHTML = '<p class="empty-message">加载摘要中...</p>';
 
     try {
       const response = await fetch(`/api/sessions/${sessionId}/run-summary`);
       const data = await response.json();
 
       if (!data.success) {
-        timeline.innerHTML = `<p class="empty-message">Failed to load summary: ${escapeHtml(data.error)}</p>`;
+        timeline.innerHTML = `<p class="empty-message">加载摘要失败：${escapeHtml(data.error)}</p>`;
         return;
       }
 
@@ -6106,7 +6122,7 @@ class CodemanApp {
       this.renderRunSummary();
     } catch (err) {
       console.error('Failed to load run summary:', err);
-      timeline.innerHTML = '<p class="empty-message">Failed to load summary</p>';
+      timeline.innerHTML = '<p class="empty-message">加载摘要失败</p>';
     }
   }
 
@@ -6118,7 +6134,7 @@ class CodemanApp {
     // Update session info
     const duration = lastUpdatedAt - startedAt;
     document.getElementById('runSummarySessionInfo').textContent =
-      `${sessionName || 'Session'} - ${this.formatDuration(duration)} total`;
+      `${sessionName || 'Session'} - 共 ${this.formatDuration(duration)}`;
 
     // Filter and render events
     const filteredEvents = this.filterRunSummaryEvents(events);
@@ -6154,7 +6170,7 @@ class CodemanApp {
     const timeline = document.getElementById('runSummaryTimeline');
 
     if (!events || events.length === 0) {
-      timeline.innerHTML = '<p class="empty-message">No events recorded yet</p>';
+      timeline.innerHTML = '<p class="empty-message">暂无事件记录</p>';
       return;
     }
 
@@ -6162,7 +6178,7 @@ class CodemanApp {
     const reversedEvents = [...events].reverse();
 
     const html = reversedEvents.map(event => {
-      const time = new Date(event.timestamp).toLocaleTimeString('en-US', { hour12: false });
+      const time = new Date(event.timestamp).toLocaleTimeString('zh-CN', { hour12: false });
       const severityClass = `event-${event.severity}`;
       const icon = this.getEventIcon(event.type, event.severity);
 
@@ -6263,7 +6279,7 @@ class CodemanApp {
 
   async saveRalphConfig() {
     if (!this.editingSessionId) {
-      this.showToast('No session selected', 'warning');
+      this.showToast('未选择 session', 'warning');
       return;
     }
 
@@ -6283,9 +6299,9 @@ class CodemanApp {
       const data = await res.json();
       if (data.error) throw new Error(data.error);
 
-      this.showToast('Ralph config saved', 'success');
+      this.showToast('Ralph 配置已保存', 'success');
     } catch (err) {
-      this.showToast('Failed to save Ralph config: ' + err.message, 'error');
+      this.showToast('保存 Ralph 配置失败：' + err.message, 'error');
     }
   }
 
@@ -6324,7 +6340,7 @@ class CodemanApp {
           });
         } catch (err) {
           tabName.textContent = originalContent;
-          this.showToast('Failed to rename', 'error');
+          this.showToast('重命名失败', 'error');
         }
       }
     };
@@ -6373,7 +6389,7 @@ class CodemanApp {
 
   async subscribeToPush() {
     if (!this._swRegistration) {
-      this.showToast('Service worker not available. HTTPS or localhost required.', 'error');
+      this.showToast('Service Worker 不可用。需要 HTTPS 或 localhost。', 'error');
       return;
     }
     try {
@@ -6404,9 +6420,9 @@ class CodemanApp {
       this._pushSubscriptionId = data.data.id;
       localStorage.setItem('codeman-push-subscription-id', data.data.id);
       this._updatePushUI(true);
-      this.showToast('Push notifications enabled', 'success');
+      this.showToast('推送通知已启用', 'success');
     } catch (err) {
-      this.showToast('Push subscription failed: ' + (err.message || err), 'error');
+      this.showToast('推送订阅失败：' + (err.message || err), 'error');
     }
   }
 
@@ -6423,9 +6439,9 @@ class CodemanApp {
       this._pushSubscriptionId = null;
       localStorage.removeItem('codeman-push-subscription-id');
       this._updatePushUI(false);
-      this.showToast('Push notifications disabled', 'success');
+      this.showToast('推送通知已停用', 'success');
     } catch (err) {
-      this.showToast('Failed to unsubscribe: ' + (err.message || err), 'error');
+      this.showToast('取消订阅失败：' + (err.message || err), 'error');
     }
   }
 
@@ -6672,7 +6688,7 @@ class CodemanApp {
       display.textContent = url;
       display.onclick = () => {
         navigator.clipboard.writeText(url).then(() => {
-          this.showToast('Tunnel URL copied', 'success');
+          this.showToast('Tunnel URL 已复制', 'success');
         });
       };
     } else {
@@ -6690,7 +6706,7 @@ class CodemanApp {
       uploadDisplay.textContent = uploadUrl;
       uploadDisplay.onclick = () => {
         navigator.clipboard.writeText(uploadUrl).then(() => {
-          this.showToast('Upload URL copied', 'success');
+          this.showToast('上传 URL 已复制', 'success');
         });
       };
     } else {
@@ -6713,12 +6729,12 @@ class CodemanApp {
     card.style.cssText = 'background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:24px;text-align:center;max-width:340px;width:90vw;box-shadow:var(--shadow-lg);cursor:default';
 
     card.innerHTML = `
-      <div style="font-size:14px;font-weight:600;color:var(--text-primary);margin-bottom:16px">Scan to connect</div>
+      <div style="font-size:14px;font-weight:600;color:var(--text-primary);margin-bottom:16px">扫码连接</div>
       <div id="tunnelQrContainer" style="background:#fff;border-radius:8px;padding:16px;display:inline-block">
-        <div style="color:#666;font-size:12px">Loading...</div>
+        <div style="color:#666;font-size:12px">加载中...</div>
       </div>
       <div id="tunnelQrUrl" style="margin-top:12px;font-family:monospace;font-size:11px;color:var(--text-muted);word-break:break-all;cursor:pointer" title="Click to copy"></div>
-      <button onclick="app.closeTunnelQR()" style="margin-top:16px;padding:6px 20px;background:var(--bg-elevated);border:1px solid var(--border);border-radius:6px;color:var(--text-primary);cursor:pointer;font-size:13px">Close</button>
+      <button onclick="app.closeTunnelQR()" style="margin-top:16px;padding:6px 20px;background:var(--bg-elevated);border:1px solid var(--border);border-radius:6px;color:var(--text-primary);cursor:pointer;font-size:13px">关闭</button>
     `;
 
     overlay.appendChild(card);
@@ -6738,14 +6754,14 @@ class CodemanApp {
           const badge = document.createElement('div');
           badge.id = 'tunnelQrBadge';
           badge.style.cssText = 'margin-top:8px;font-size:11px;color:var(--text-muted)';
-          badge.textContent = 'Single-use auth \u00b7 expires in 60s';
+          badge.textContent = '单次验证码 · 60秒后过期';
           const regenBtn = document.createElement('button');
-          regenBtn.textContent = 'Regenerate QR';
+          regenBtn.textContent = '重新生成 QR';
           regenBtn.style.cssText = 'margin-top:8px;padding:4px 12px;background:var(--bg-elevated);border:1px solid var(--border);border-radius:4px;color:var(--text-secondary);cursor:pointer;font-size:11px';
           regenBtn.onclick = () => {
             fetch('/api/tunnel/qr/regenerate', { method: 'POST' })
-              .then(() => this.showToast('QR code regenerated', 'success'))
-              .catch(() => this.showToast('Failed to regenerate QR', 'error'));
+              .then(() => this.showToast('QR 码已重新生成', 'success'))
+              .catch(() => this.showToast('重新生成 QR 失败', 'error'));
           };
           const card = container.parentElement;
           if (card) {
@@ -6757,7 +6773,7 @@ class CodemanApp {
       })
       .catch(() => {
         const container = document.getElementById('tunnelQrContainer');
-        if (container) container.innerHTML = '<div style="color:#c00;font-size:12px;padding:20px">Tunnel not active</div>';
+        if (container) container.innerHTML = '<div style="color:#c00;font-size:12px;padding:20px">Tunnel 未激活</div>';
       });
 
     // Fetch URL for display
@@ -6769,7 +6785,7 @@ class CodemanApp {
           urlEl.textContent = status.url;
           urlEl.onclick = () => {
             navigator.clipboard.writeText(status.url).then(() => {
-              this.showToast('Tunnel URL copied', 'success');
+              this.showToast('Tunnel URL 已复制', 'success');
             });
           };
         }
@@ -6852,13 +6868,13 @@ class CodemanApp {
         this._pollTunnelStatus();
       } else {
         this._dismissTunnelConnecting();
-        this.showToast('Tunnel stopped', 'info');
+        this.showToast('Tunnel 已停止', 'info');
         this._updateWelcomeTunnelBtn(false);
         btn.disabled = false;
       }
     } catch (err) {
       this._dismissTunnelConnecting();
-      this.showToast('Failed to toggle tunnel', 'error');
+      this.showToast('切换 Tunnel 失败', 'error');
       btn.disabled = false;
     }
   }
@@ -6918,10 +6934,10 @@ class CodemanApp {
           const welcomeVisible = document.getElementById('welcomeOverlay')?.classList.contains('visible');
           if (welcomeVisible) {
             this._updateWelcomeTunnelBtn(true, status.url, true);
-            this.showToast('Tunnel active', 'success');
+            this.showToast('Tunnel 已激活', 'success');
           } else {
             this._updateWelcomeTunnelBtn(true, status.url);
-            this.showToast(`Tunnel active: ${status.url}`, 'success');
+            this.showToast(`Tunnel 已激活：${status.url}`, 'success');
             this.showTunnelQR();
           }
           return;
@@ -7128,7 +7144,7 @@ class CodemanApp {
     const urlEl = document.getElementById('tunnelPanelUrl');
     if (urlEl) {
       urlEl.onclick = () => {
-        navigator.clipboard.writeText(info.url).then(() => this.showToast('Tunnel URL copied', 'success'));
+        navigator.clipboard.writeText(info.url).then(() => this.showToast('Tunnel URL 已复制', 'success'));
       };
     }
   }
@@ -7136,11 +7152,11 @@ class CodemanApp {
   _formatTimeAgo(timestamp) {
     const diff = Date.now() - timestamp;
     const mins = Math.floor(diff / 60000);
-    if (mins < 1) return 'just now';
-    if (mins < 60) return `${mins}m ago`;
+    if (mins < 1) return '刚刚';
+    if (mins < 60) return `${mins} 分钟前`;
     const hrs = Math.floor(mins / 60);
-    if (hrs < 24) return `${hrs}h ago`;
-    return `${Math.floor(hrs / 24)}d ago`;
+    if (hrs < 24) return `${hrs} 小时前`;
+    return `${Math.floor(hrs / 24)} 天前`;
   }
 
   async _tunnelPanelToggle(enable) {
@@ -7157,28 +7173,28 @@ class CodemanApp {
           indicator.style.display = 'flex';
           indicator.classList.add('connecting');
         }
-        this.showToast('Tunnel starting...', 'info');
+        this.showToast('Tunnel 启动中...', 'info');
         this._showTunnelConnecting();
         this._pollTunnelStatus();
       } else {
-        this.showToast('Tunnel stopped', 'info');
+        this.showToast('Tunnel 已停止', 'info');
       }
       this.closeTunnelPanel();
     } catch {
-      this.showToast('Failed to toggle tunnel', 'error');
+      this.showToast('切换 Tunnel 失败', 'error');
     }
   }
 
   async _tunnelPanelRevokeAll() {
     try {
       await fetch('/api/auth/revoke', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' });
-      this.showToast('All sessions revoked', 'success');
+      this.showToast('已撤销全部 session', 'success');
       // Refresh panel
       const res = await fetch('/api/tunnel/info');
       const info = await res.json();
       this._renderTunnelPanel(info);
     } catch {
-      this.showToast('Failed to revoke sessions', 'error');
+      this.showToast('撤销 session 失败', 'error');
     }
   }
 
@@ -7451,15 +7467,15 @@ class CodemanApp {
       // Save model configuration separately
       await this.saveModelConfigFromSettings();
 
-      this.showToast('Settings saved', 'success');
+      this.showToast('设置已保存', 'success');
 
       // Show tunnel-specific feedback if toggled on
       if (settings.tunnelEnabled) {
-        this.showToast('Tunnel starting — QR code will appear when ready...', 'info');
+        this.showToast('Tunnel 启动中——QR 码就绪后将显示...', 'info');
       }
     } catch (err) {
       // Server save failed but localStorage succeeded
-      this.showToast('Settings saved locally', 'warning');
+      this.showToast('设置已保存到本地', 'warning');
     }
 
     this.closeAppSettings();
@@ -7755,11 +7771,11 @@ class CodemanApp {
   async clearAllSubagents() {
     const count = this.subagents.size;
     if (count === 0) {
-      this.showToast('No subagents to clear', 'info');
+      this.showToast('没有可清除的子代理', 'info');
       return;
     }
 
-    if (!confirm(`Clear all ${count} tracked subagent(s)? This removes them from the UI but does not affect running processes.`)) {
+    if (!confirm(`确认清除全部 ${count} 个子代理记录？此操作仅移除界面显示，不影响运行中的进程。`)) {
       return;
     }
 
@@ -7777,12 +7793,12 @@ class CodemanApp {
         this.renderSubagentPanel();
         this.renderMonitorSubagents();
         this.updateSubagentBadge();
-        this.showToast(`Cleared ${data.data.cleared} subagent(s)`, 'success');
+        this.showToast(`已清除 ${data.data.cleared} 个子代理`, 'success');
       } else {
-        this.showToast('Failed to clear subagents: ' + data.error, 'error');
+        this.showToast('清除子代理失败：' + data.error, 'error');
       }
     } catch (err) {
-      this.showToast('Failed to clear subagents', 'error');
+      this.showToast('清除子代理失败', 'error');
     }
   }
 
@@ -8089,11 +8105,11 @@ class CodemanApp {
         this.renderTokenStats(data);
         document.getElementById('tokenStatsModal').classList.add('active');
       } else {
-        this.showToast('Failed to load token stats', 'error');
+        this.showToast('加载 Token 统计失败', 'error');
       }
     } catch (err) {
       console.error('Failed to fetch token stats:', err);
-      this.showToast('Failed to load token stats', 'error');
+      this.showToast('加载 Token 统计失败', 'error');
     }
   }
 
@@ -8121,17 +8137,17 @@ class CodemanApp {
     const summaryEl = document.getElementById('statsSummary');
     summaryEl.innerHTML = `
       <div class="stat-card">
-        <span class="stat-card-label">Today</span>
+        <span class="stat-card-label">今日</span>
         <span class="stat-card-value">${this.formatTokens(todayData.inputTokens + todayData.outputTokens)}</span>
         <span class="stat-card-cost">~$${todayData.estimatedCost.toFixed(2)}</span>
       </div>
       <div class="stat-card">
-        <span class="stat-card-label">7 Days</span>
+        <span class="stat-card-label">近7天</span>
         <span class="stat-card-value">${this.formatTokens(weekInput + weekOutput)}</span>
         <span class="stat-card-cost">~$${weekCost.toFixed(2)}</span>
       </div>
       <div class="stat-card">
-        <span class="stat-card-label">Lifetime</span>
+        <span class="stat-card-label">累计</span>
         <span class="stat-card-value">${this.formatTokens(lifetimeInput + lifetimeOutput)}</span>
         <span class="stat-card-cost">~$${lifetimeCost.toFixed(2)}</span>
       </div>
@@ -8150,7 +8166,7 @@ class CodemanApp {
       const dayData = daily.find(d => d.date === dateStr);
       chartData.push({
         date: dateStr,
-        dayName: date.toLocaleDateString('en-US', { weekday: 'short' }),
+        dayName: date.toLocaleDateString('zh-CN', { weekday: 'short' }),
         tokens: dayData ? dayData.inputTokens + dayData.outputTokens : 0,
         cost: dayData ? dayData.estimatedCost : 0,
       });
@@ -8172,18 +8188,18 @@ class CodemanApp {
     const tableData = daily.slice(0, 14);
 
     if (tableData.length === 0) {
-      tableEl.innerHTML = '<div class="stats-no-data">No usage data recorded yet</div>';
+      tableEl.innerHTML = '<div class="stats-no-data">暂无使用记录</div>';
     } else {
       tableEl.innerHTML = `
         <div class="stats-table-header">
-          <span>Date</span>
-          <span>Input</span>
-          <span>Output</span>
-          <span>Cost</span>
+          <span>日期</span>
+          <span>输入</span>
+          <span>输出</span>
+          <span>费用</span>
         </div>
         ${tableData.map(d => {
           const dateObj = new Date(d.date + 'T00:00:00');
-          const dateStr = dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+          const dateStr = dateObj.toLocaleDateString('zh-CN', { month: 'short', day: 'numeric' });
           return `
             <div class="stats-table-row">
               <span class="cell cell-date">${dateStr}</span>
@@ -8615,7 +8631,7 @@ class CodemanApp {
         this.notificationManager?.notify({
           urgency: 'error',
           category: 'fix-plan',
-          title: 'Error',
+          title: '错误',
           message: data.error || 'Failed to generate fix plan',
         });
         return;
@@ -8704,7 +8720,7 @@ class CodemanApp {
         this.notificationManager?.notify({
           urgency: 'error',
           category: 'fix-plan',
-          title: 'Error',
+          title: '错误',
           message: data.error || 'Failed to write file',
         });
       }
@@ -8943,16 +8959,16 @@ class CodemanApp {
 
     if (loop?.active) {
       badge.classList.add('active');
-      statusText.textContent = 'Running';
+      statusText.textContent = '运行中';
     } else if (total > 0 && completed === total) {
       // Only show "Complete" when all todos are actually done
       badge.classList.add('completed');
-      statusText.textContent = 'Complete';
+      statusText.textContent = '已完成';
     } else if (loop?.enabled || total > 0) {
       badge.classList.add('tracking');
-      statusText.textContent = 'Tracking';
+      statusText.textContent = '追踪中';
     } else {
-      statusText.textContent = 'Idle';
+      statusText.textContent = '空闲';
     }
   }
 
@@ -8991,12 +9007,12 @@ class CodemanApp {
 
     if (circuitBreaker.state === 'HALF_OPEN') {
       cbContainer.classList.add('half-open');
-      cbContainer.innerHTML = `<span class="cb-icon">⚠</span><span class="cb-text">Warning</span>`;
-      cbContainer.title = circuitBreaker.reason || 'Circuit breaker warning';
+      cbContainer.innerHTML = `<span class="cb-icon">⚠</span><span class="cb-text">告警</span>`;
+      cbContainer.title = circuitBreaker.reason || '熔断器告警';
     } else if (circuitBreaker.state === 'OPEN') {
       cbContainer.classList.add('open');
-      cbContainer.innerHTML = `<span class="cb-icon">🛑</span><span class="cb-text">Stuck</span>`;
-      cbContainer.title = circuitBreaker.reason || 'Loop appears stuck';
+      cbContainer.innerHTML = `<span class="cb-icon">🛑</span><span class="cb-text">卡住</span>`;
+      cbContainer.title = circuitBreaker.reason || '循环似乎已卡住';
     }
 
     // Add click handler to reset
@@ -9310,9 +9326,9 @@ class CodemanApp {
         throw new Error(data.error || 'Failed to update task');
       }
 
-      this.showToast(`Task ${newStatus === 'completed' ? 'completed' : 'reopened'}`, 'success');
+      this.showToast(`任务已${newStatus === 'completed' ? '完成' : '重新开启'}`, 'success');
     } catch (err) {
-      this.showToast('Failed to update task: ' + err.message, 'error');
+      this.showToast('更新任务失败：' + err.message, 'error');
     }
   }
 
@@ -9332,9 +9348,9 @@ class CodemanApp {
         throw new Error(data.error || 'Failed to retry task');
       }
 
-      this.showToast('Task reset for retry', 'success');
+      this.showToast('任务已重置等待重试', 'success');
     } catch (err) {
-      this.showToast('Failed to retry task: ' + err.message, 'error');
+      this.showToast('重试任务失败：' + err.message, 'error');
     }
   }
 
@@ -9384,20 +9400,20 @@ class CodemanApp {
       const data = await res.json();
 
       if (data.error) {
-        this.showToast('Failed to load plan history: ' + data.error, 'error');
+        this.showToast('加载计划历史失败：' + data.error, 'error');
         return;
       }
 
       const history = data.history || [];
       if (history.length === 0) {
-        this.showToast('No plan history available', 'info');
+        this.showToast('暂无计划历史记录', 'info');
         return;
       }
 
       // Show history dropdown modal
       this.showPlanHistoryModal(history, data.currentVersion);
     } catch (err) {
-      this.showToast('Failed to load plan history: ' + err.message, 'error');
+      this.showToast('加载计划历史失败：' + err.message, 'error');
     }
   }
 
@@ -9414,12 +9430,12 @@ class CodemanApp {
       <div class="modal-backdrop" onclick="app.closePlanHistoryModal()"></div>
       <div class="modal-content modal-sm">
         <div class="modal-header">
-          <h3>Plan Version History</h3>
+          <h3>计划版本历史</h3>
           <button class="modal-close" onclick="app.closePlanHistoryModal()">&times;</button>
         </div>
         <div class="modal-body">
           <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.75rem;">
-            Current version: <strong>v${currentVersion}</strong>
+            当前版本：<strong>v${currentVersion}</strong>
           </p>
           <div class="plan-history-list">
             ${history.map(item => `
@@ -9427,7 +9443,7 @@ class CodemanApp {
                    onclick="app.rollbackToPlanVersion(${item.version})">
                 <div>
                   <span class="plan-history-version">v${item.version}</span>
-                  <span class="plan-history-tasks">${item.taskCount || 0} tasks</span>
+                  <span class="plan-history-tasks">${item.taskCount || 0} 个任务</span>
                 </div>
                 <span class="plan-history-time">${this.formatRelativeTime(item.timestamp)}</span>
               </div>
@@ -9435,7 +9451,7 @@ class CodemanApp {
           </div>
         </div>
         <div class="modal-footer">
-          <button class="btn-toolbar" onclick="app.closePlanHistoryModal()">Close</button>
+          <button class="btn-toolbar" onclick="app.closePlanHistoryModal()">关闭</button>
         </div>
       </div>
     `;
@@ -9452,7 +9468,7 @@ class CodemanApp {
   async rollbackToPlanVersion(version) {
     if (!this.activeSessionId) return;
 
-    if (!confirm(`Rollback to plan version ${version}? Current changes will be preserved in history.`)) {
+    if (!confirm(`确认回滚至计划版本 ${version}？当前改动将保留在历史记录中。`)) {
       return;
     }
 
@@ -9463,17 +9479,17 @@ class CodemanApp {
       const data = await res.json();
 
       if (data.error) {
-        this.showToast('Failed to rollback: ' + data.error, 'error');
+        this.showToast('回滚失败：' + data.error, 'error');
         return;
       }
 
-      this.showToast(`Rolled back to plan v${version}`, 'success');
+      this.showToast(`已回滚至计划 v${version}`, 'success');
       this.closePlanHistoryModal();
 
       // Refresh the plan display
       this.renderRalphStatePanel();
     } catch (err) {
-      this.showToast('Failed to rollback: ' + err.message, 'error');
+      this.showToast('回滚失败：' + err.message, 'error');
     }
   }
 
@@ -9488,10 +9504,10 @@ class CodemanApp {
     const hours = Math.floor(diff / 3600000);
     const days = Math.floor(diff / 86400000);
 
-    if (mins < 1) return 'just now';
-    if (mins < 60) return `${mins}m ago`;
-    if (hours < 24) return `${hours}h ago`;
-    return `${days}d ago`;
+    if (mins < 1) return '刚刚';
+    if (mins < 60) return `${mins} 分钟前`;
+    if (hours < 24) return `${hours} 小时前`;
+    return `${days} 天前`;
   }
 
   // ═══════════════════════════════════════════════════════════════
@@ -9540,7 +9556,7 @@ class CodemanApp {
 
     // Render subagent list
     if (this.subagents.size === 0) {
-      list.innerHTML = '<div class="subagent-empty">No background agents detected</div>';
+      list.innerHTML = '<div class="subagent-empty">暂无后台代理</div>';
       return;
     }
 
@@ -9606,7 +9622,7 @@ class CodemanApp {
     if (!detail) return;
 
     if (!this.activeSubagentId) {
-      detail.innerHTML = '<div class="subagent-empty">Select an agent to view details</div>';
+      detail.innerHTML = '<div class="subagent-empty">选择代理查看详情</div>';
       return;
     }
 
@@ -9614,12 +9630,12 @@ class CodemanApp {
     const activity = this.subagentActivity.get(this.activeSubagentId) || [];
 
     if (!agent) {
-      detail.innerHTML = '<div class="subagent-empty">Agent not found</div>';
+      detail.innerHTML = '<div class="subagent-empty">代理未找到</div>';
       return;
     }
 
     const activityHtml = activity.slice(-30).map(a => {
-      const time = new Date(a.timestamp).toLocaleTimeString('en-US', { hour12: false });
+      const time = new Date(a.timestamp).toLocaleTimeString('zh-CN', { hour12: false });
       if (a.type === 'tool') {
         const toolDetail = this.getToolDetailExpanded(a.tool, a.input, a.fullInput, a.toolUseId);
         return `<div class="subagent-activity tool" data-tool-use-id="${a.toolUseId || ''}">
@@ -9687,7 +9703,7 @@ class CodemanApp {
         ${tokenStats}
       </div>
       <div class="subagent-activity-log">
-        ${activityHtml || '<div class="subagent-empty">No activity yet</div>'}
+        ${activityHtml || '<div class="subagent-empty">暂无活动</div>'}
       </div>
     `;
   }
@@ -9771,13 +9787,13 @@ class CodemanApp {
         this.renderSubagentPanel();
         this.renderSubagentDetail();
         this.updateSubagentWindows();
-        this.showToast(`Subagent ${agentId.substring(0, 7)} killed`, 'success');
+        this.showToast(`子代理 ${agentId.substring(0, 7)} 已终止`, 'success');
       } else {
-        this.showToast(data.error || 'Failed to kill subagent', 'error');
+        this.showToast(data.error || '终止子代理失败', 'error');
       }
     } catch (err) {
       console.error('Failed to kill subagent:', err);
-      this.showToast('Failed to kill subagent: ' + err.message, 'error');
+      this.showToast('终止子代理失败：' + err.message, 'error');
     }
   }
 
@@ -10179,7 +10195,7 @@ class CodemanApp {
     const activity = this.subagentActivity.get(agentId) || [];
 
     if (activity.length === 0) {
-      body.innerHTML = '<div class="subagent-empty">No activity yet</div>';
+      body.innerHTML = '<div class="subagent-empty">暂无活动</div>';
       return;
     }
 
@@ -10214,7 +10230,7 @@ class CodemanApp {
   }
 
   _renderActivityItem(a) {
-    const time = new Date(a.timestamp).toLocaleTimeString('en-US', { hour12: false });
+    const time = new Date(a.timestamp).toLocaleTimeString('zh-CN', { hour12: false });
     if (a.type === 'tool') {
       return `<div class="activity-line">
         <span class="time">${time}</span>
@@ -10680,7 +10696,7 @@ class CodemanApp {
     const headerEl = panel.querySelector('.team-tasks-header-text');
     if (headerEl) {
       const teammateCount = activeTeam.members.filter(m => m.agentType !== 'team-lead').length;
-      headerEl.textContent = `Team Tasks (${teammateCount} teammates)`;
+      headerEl.textContent = `团队任务（${teammateCount} 个成员）`;
     }
 
     const progressEl = panel.querySelector('.team-tasks-progress-fill');
@@ -11339,9 +11355,9 @@ class CodemanApp {
   copyFilePreviewContent() {
     if (this.filePreviewContent) {
       navigator.clipboard.writeText(this.filePreviewContent).then(() => {
-        this.showToast('Copied to clipboard', 'success');
+        this.showToast('已复制到剪贴板', 'success');
       }).catch(() => {
-        this.showToast('Failed to copy', 'error');
+        this.showToast('复制失败', 'error');
       });
     }
   }
@@ -11707,7 +11723,7 @@ class CodemanApp {
   killAllMuxSessions() {
     const count = this.muxSessions?.length || 0;
     if (count === 0) {
-      alert('No sessions to kill');
+      alert('没有可终止的 session');
       return;
     }
 
@@ -11925,12 +11941,12 @@ class CodemanApp {
     const description = document.getElementById('newCaseDescription').value.trim();
 
     if (!name) {
-      this.showToast('Please enter a case name', 'error');
+      this.showToast('请输入 Case 名称', 'error');
       return;
     }
 
     if (!/^[a-zA-Z0-9_-]+$/.test(name)) {
-      this.showToast('Invalid name. Use only letters, numbers, hyphens, underscores.', 'error');
+      this.showToast('名称无效，仅允许字母、数字、连字符和下划线。', 'error');
       return;
     }
 
@@ -11944,17 +11960,17 @@ class CodemanApp {
       const data = await res.json();
       if (data.success) {
         this.closeCreateCaseModal();
-        this.showToast(`Case "${name}" created`, 'success');
+        this.showToast(`Case "${name}" 已创建`, 'success');
         // Reload cases and select the new one
         await this.loadQuickStartCases(name);
         // Save as last used case
         await this.saveLastUsedCase(name);
       } else {
-        this.showToast(data.error || 'Failed to create case', 'error');
+        this.showToast(data.error || '创建 Case 失败', 'error');
       }
     } catch (err) {
       console.error('Failed to create case:', err);
-      this.showToast('Failed to create case: ' + err.message, 'error');
+      this.showToast('创建 Case 失败：' + err.message, 'error');
     }
   }
 
@@ -11963,17 +11979,17 @@ class CodemanApp {
     const path = document.getElementById('linkCasePath').value.trim();
 
     if (!name) {
-      this.showToast('Please enter a case name', 'error');
+      this.showToast('请输入 Case 名称', 'error');
       return;
     }
 
     if (!/^[a-zA-Z0-9_-]+$/.test(name)) {
-      this.showToast('Invalid name. Use only letters, numbers, hyphens, underscores.', 'error');
+      this.showToast('名称无效，仅允许字母、数字、连字符和下划线。', 'error');
       return;
     }
 
     if (!path) {
-      this.showToast('Please enter a folder path', 'error');
+      this.showToast('请输入文件夹路径', 'error');
       return;
     }
 
@@ -11987,17 +12003,17 @@ class CodemanApp {
       const data = await res.json();
       if (data.success) {
         this.closeCreateCaseModal();
-        this.showToast(`Case "${name}" linked to ${path}`, 'success');
+        this.showToast(`Case "${name}" 已关联到 ${path}`, 'success');
         // Reload cases and select the new one
         await this.loadQuickStartCases(name);
         // Save as last used case
         await this.saveLastUsedCase(name);
       } else {
-        this.showToast(data.error || 'Failed to link case', 'error');
+        this.showToast(data.error || '关联 Case 失败', 'error');
       }
     } catch (err) {
       console.error('Failed to link case:', err);
-      this.showToast('Failed to link case: ' + err.message, 'error');
+      this.showToast('关联 Case 失败：' + err.message, 'error');
     }
   }
 
@@ -12064,7 +12080,7 @@ class CodemanApp {
     // Close the picker
     this.closeMobileCasePicker();
 
-    this.showToast(`Selected: ${caseName}`, 'success');
+    this.showToast(`已选择：${caseName}`, 'success');
   }
 
   updateMobileCaseLabel(caseName) {
@@ -12229,7 +12245,7 @@ class CodemanApp {
   }
 
   async killMuxSession(sessionId) {
-    if (!confirm('Kill this mux session?')) return;
+    if (!confirm('确认终止此 mux session？')) return;
 
     try {
       // Use closeSession to properly clean up both the session tab and tmux process
@@ -12238,7 +12254,7 @@ class CodemanApp {
     } catch (err) {
       // Fallback: kill mux directly if session cleanup fails
       try { await fetch(`/api/mux-sessions/${sessionId}`, { method: 'DELETE' }); } catch (_ignored) {}
-      this.showToast('Tmux session killed', 'success');
+      this.showToast('Tmux session 已终止', 'success');
     }
     this.muxSessions = this.muxSessions.filter(s => s.sessionId !== sessionId);
     this.renderMuxSessions();
@@ -12250,13 +12266,13 @@ class CodemanApp {
       const data = await res.json();
 
       if (data.dead && data.dead.length > 0) {
-        this.showToast(`Found ${data.dead.length} dead mux session(s)`, 'warning');
+        this.showToast(`发现 ${data.dead.length} 个已停止的 mux session`, 'warning');
         await this.loadMuxSessions();
       } else {
-        this.showToast('All mux sessions are alive', 'success');
+        this.showToast('所有 mux session 正常运行', 'success');
       }
     } catch (err) {
-      this.showToast('Failed to reconcile mux sessions', 'error');
+      this.showToast('mux session 对账失败', 'error');
     }
   }
 
@@ -12326,11 +12342,11 @@ class CodemanApp {
 
   async cancelPlanFromMonitor() {
     if (!this.activePlanOrchestratorId && this.planSubagents?.size === 0) {
-      this.showToast('No active plan generation', 'info');
+      this.showToast('没有正在生成的计划', 'info');
       return;
     }
 
-    if (!confirm('Cancel plan generation and close all plan agent windows?')) return;
+    if (!confirm('确认取消计划生成并关闭所有计划代理窗口？')) return;
 
     // Cancel the plan generation (reuse existing method)
     await this.cancelPlanGeneration();
@@ -12343,7 +12359,7 @@ class CodemanApp {
 
     // Update monitor display
     this.renderMonitorPlanAgents();
-    this.showToast('Plan generation cancelled', 'success');
+    this.showToast('计划生成已取消', 'success');
   }
 
   // ═══════════════════════════════════════════════════════════════

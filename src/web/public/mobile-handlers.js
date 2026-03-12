@@ -36,15 +36,19 @@
 const MobileDetection = {
   /** Check if device supports touch input */
   isTouchDevice() {
-    return 'ontouchstart' in window ||
+    return (
+      'ontouchstart' in window ||
       navigator.maxTouchPoints > 0 ||
-      (window.matchMedia && window.matchMedia('(pointer: coarse)').matches);
+      (window.matchMedia && window.matchMedia('(pointer: coarse)').matches)
+    );
   },
 
   /** Check if device is iOS (iPhone, iPad, iPod) */
   isIOS() {
-    return /iPad|iPhone|iPod/.test(navigator.userAgent) ||
-      (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+    return (
+      /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+      (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)
+    );
   },
 
   /** Check if browser is Safari */
@@ -77,7 +81,14 @@ const MobileDetection = {
     const isTouch = this.isTouchDevice();
 
     // Remove existing device classes
-    body.classList.remove('device-mobile', 'device-tablet', 'device-desktop', 'touch-device', 'ios-device', 'safari-browser');
+    body.classList.remove(
+      'device-mobile',
+      'device-tablet',
+      'device-desktop',
+      'touch-device',
+      'ios-device',
+      'safari-browser'
+    );
 
     // Add current device class
     body.classList.add(`device-${deviceType}`);
@@ -130,7 +141,7 @@ const MobileDetection = {
       this._gestureStartHandler = null;
       this._gestureChangeHandler = null;
     }
-  }
+  },
 };
 
 // ═══════════════════════════════════════════════════════════════
@@ -309,8 +320,14 @@ const KeyboardHandler = {
     // while keyboard is up — this one-shot resize on open/close is sufficient.
     setTimeout(() => {
       if (typeof app !== 'undefined' && app.terminal) {
-        if (app.fitAddon) try { app.fitAddon.fit(); } catch {}
+        if (app.fitAddon)
+          try {
+            app.fitAddon.fit();
+          } catch {}
         app.terminal.scrollToBottom();
+        // Re-focus terminal after fit() — fit() can cause xterm's internal textarea
+        // to lose focus on mobile, silently dropping all subsequent keystrokes.
+        app.terminal.focus();
         // Send resize to server so PTY dimensions match xterm
         this._sendTerminalResize();
       }
@@ -332,7 +349,9 @@ const KeyboardHandler = {
     // Refit terminal, scroll to bottom, and send resize to restore original dimensions
     setTimeout(() => {
       if (typeof app !== 'undefined' && app.fitAddon) {
-        try { app.fitAddon.fit(); } catch {}
+        try {
+          app.fitAddon.fit();
+        } catch {}
         if (app.terminal) app.terminal.scrollToBottom();
         // Send resize to server to restore full terminal size
         this._sendTerminalResize();
@@ -355,7 +374,7 @@ const KeyboardHandler = {
         fetch(`/api/sessions/${app.activeSessionId}/resize`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ cols, rows })
+          body: JSON.stringify({ cols, rows }),
         }).catch(() => {});
       }
     } catch {}
@@ -378,11 +397,7 @@ const KeyboardHandler = {
         return false;
       }
     }
-    return (
-      tagName === 'input' ||
-      tagName === 'textarea' ||
-      el.isContentEditable
-    );
+    return tagName === 'input' || tagName === 'textarea' || el.isContentEditable;
   },
 
   /** Scroll input into view above the keyboard */
@@ -408,7 +423,7 @@ const KeyboardHandler = {
       // For page-level - use scrollIntoView
       input.scrollIntoView({ block: 'center', behavior: 'smooth' });
     }
-  }
+  },
 };
 
 // ═══════════════════════════════════════════════════════════════
@@ -423,8 +438,8 @@ const SwipeHandler = {
   startX: 0,
   startY: 0,
   startTime: 0,
-  minSwipeDistance: 80,  // Minimum pixels for a valid swipe
-  maxSwipeTime: 300,     // Maximum ms for a swipe gesture
+  minSwipeDistance: 80, // Minimum pixels for a valid swipe
+  maxSwipeTime: 300, // Maximum ms for a swipe gesture
   maxVerticalDrift: 100, // Max vertical movement allowed
 
   _touchStartHandler: null,
@@ -475,9 +490,9 @@ const SwipeHandler = {
     const deltaX = endX - this.startX;
     const deltaY = Math.abs(endY - this.startY);
 
-    if (elapsed > this.maxSwipeTime) return;  // Too slow
-    if (deltaY > this.maxVerticalDrift) return;  // Too much vertical movement
-    if (Math.abs(deltaX) < this.minSwipeDistance) return;  // Too short
+    if (elapsed > this.maxSwipeTime) return; // Too slow
+    if (deltaY > this.maxVerticalDrift) return; // Too much vertical movement
+    if (Math.abs(deltaX) < this.minSwipeDistance) return; // Too short
 
     // Valid swipe detected
     if (deltaX > 0) {
@@ -487,5 +502,5 @@ const SwipeHandler = {
       // Swipe left -> next session
       if (typeof app !== 'undefined') app.nextSession();
     }
-  }
+  },
 };

@@ -103,7 +103,10 @@ import {
   registerRespawnRoutes,
   registerRalphRoutes,
   registerPlanRoutes,
+  registerTodosRoutes,
 } from './routes/index.js';
+import { QuotaRecoveryManager } from '../quota-recovery-manager.js';
+import { TodoRespawnWatcher } from '../todo-respawn-watcher.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -199,6 +202,7 @@ interface SessionListenerRefs {
   bashToolStart: (tool: ActiveBashTool) => void;
   bashToolEnd: (tool: ActiveBashTool) => void;
   bashToolsUpdate: (tools: ActiveBashTool[]) => void;
+  output: (data: string) => void;
 }
 
 export class WebServer extends EventEmitter {
@@ -291,6 +295,10 @@ export class WebServer extends EventEmitter {
     teamRemoved: (config: unknown) => void;
     taskUpdated: (data: unknown) => void;
   } | null = null;
+  /** Quota recovery manager — detects rate limits and auto-reschedules respawn */
+  private quotaRecoveryManager: QuotaRecoveryManager | null = null;
+  /** Todo-based respawn watcher — triggers respawn when project has pending todos */
+  private todoRespawnWatcher: TodoRespawnWatcher | null = null;
   constructor(port: number = 3000, https: boolean = false, testMode: boolean = false) {
     super();
     this.setMaxListeners(0);
@@ -699,6 +707,26 @@ export class WebServer extends EventEmitter {
     registerRespawnRoutes(this.app, ctx);
     registerRalphRoutes(this.app, ctx);
     registerPlanRoutes(this.app, ctx);
+    registerTodosRoutes(this.app);
+
+    // ========== Quota Recovery API endpoints ==========
+
+    this.app.get('/api/sessions/:id/quota-status', async (req) => {
+      const { id } = req.params as { id: string };
+      if (!this.quotaRecoveryManager) {
+        return { status: 'ok', data: { quotaLimited: false } };
+      }
+      return { status: 'ok', data: this.quotaRecoveryManager.getQuotaStatus(id) };
+    });
+
+    this.app.post('/api/sessions/:id/quota-recovery/clear', async (req, reply) => {
+      const { id } = req.params as { id: string };
+      if (!this.sessions.has(id)) {
+        return reply.code(404).send(createErrorResponse(ApiErrorCode.NOT_FOUND, 'Session not found'));
+      }
+      this.quotaRecoveryManager?.clearQuotaLimited(id);
+      return { status: 'ok', data: { cleared: true } };
+    });
   }
 
   /**
@@ -1186,6 +1214,7 @@ export class WebServer extends EventEmitter {
             session.off('bashToolStart', listenerRefs.bashToolStart);
             session.off('bashToolEnd', listenerRefs.bashToolEnd);
             session.off('bashToolsUpdate', listenerRefs.bashToolsUpdate);
+            session.off('output', listenerRefs.output);
             this.sessionListenerRefs.delete(session.id);
           }
         } catch (err) {
@@ -1348,6 +1377,13 @@ export class WebServer extends EventEmitter {
       bashToolsUpdate: (tools: ActiveBashTool[]) => {
         this.broadcast(SseEvent.SessionBashToolsUpdate, { sessionId: session.id, tools });
       },
+
+      // ─── Quota Recovery ─────────────────────────────────────
+
+      /** Feeds output into quota recovery manager to detect Claude API rate limits */
+      output: (data: string) => {
+        this.quotaRecoveryManager?.checkOutput(session.id, data);
+      },
     };
 
     // Store listener refs for cleanup
@@ -1379,6 +1415,7 @@ export class WebServer extends EventEmitter {
     session.on('bashToolStart', listeners.bashToolStart);
     session.on('bashToolEnd', listeners.bashToolEnd);
     session.on('bashToolsUpdate', listeners.bashToolsUpdate);
+    session.on('output', listeners.output);
   }
 
   private setupRespawnListeners(sessionId: string, controller: RespawnController): void {
@@ -2413,6 +2450,14 @@ export class WebServer extends EventEmitter {
       INACTIVITY_TIMEOUT_MS,
       { description: 'periodic token recording' }
     );
+
+    // Initialize quota recovery manager (detects Claude API rate limits, auto-retries)
+    this.quotaRecoveryManager = new QuotaRecoveryManager(this.sessions, this.respawnControllers);
+
+    // Initialize todo-based respawn watcher (auto-triggers respawn when project has pending todos)
+    this.todoRespawnWatcher = new TodoRespawnWatcher(this.sessions, this.respawnControllers);
+    this.todoRespawnWatcher.start();
+    console.log('Todo respawn watcher started - monitoring sessions for pending project todos');
 
     // Start subagent watcher for Claude Code background agent visibility (if enabled)
     if (await this.isSubagentTrackingEnabled()) {
