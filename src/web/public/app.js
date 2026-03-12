@@ -6494,7 +6494,7 @@ class CodemanApp {
     document.getElementById('appSettingsShowMonitor').checked = settings.showMonitor ?? defaults.showMonitor ?? true;
     document.getElementById('appSettingsShowProjectInsights').checked = settings.showProjectInsights ?? defaults.showProjectInsights ?? false;
     document.getElementById('appSettingsShowFileBrowser').checked = settings.showFileBrowser ?? defaults.showFileBrowser ?? false;
-    document.getElementById('appSettingsShowSubagents').checked = settings.showSubagents ?? defaults.showSubagents ?? true;
+    document.getElementById('appSettingsShowSubagents').checked = settings.showSubagents ?? defaults.showSubagents ?? false;
     document.getElementById('appSettingsSubagentTracking').checked = settings.subagentTrackingEnabled ?? defaults.subagentTrackingEnabled ?? true;
     document.getElementById('appSettingsSubagentActiveTabOnly').checked = settings.subagentActiveTabOnly ?? defaults.subagentActiveTabOnly ?? true;
     document.getElementById('appSettingsImageWatcherEnabled').checked = settings.imageWatcherEnabled ?? defaults.imageWatcherEnabled ?? false;
@@ -7662,7 +7662,7 @@ class CodemanApp {
     const settings = this.loadAppSettingsFromStorage();
     const defaults = this.getDefaultSettings();
     const showMonitor = settings.showMonitor ?? defaults.showMonitor ?? true;
-    const showSubagents = settings.showSubagents ?? defaults.showSubagents ?? true;
+    const showSubagents = settings.showSubagents ?? defaults.showSubagents ?? false;
     const showFileBrowser = settings.showFileBrowser ?? defaults.showFileBrowser ?? false;
 
     const monitorPanel = document.getElementById('monitorPanel');
