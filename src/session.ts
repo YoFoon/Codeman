@@ -329,6 +329,11 @@ export class Session extends EventEmitter {
   // Session color for visual differentiation
   private _color: import('./types.js').SessionColor = 'default';
 
+  // Quota limit tracking (Claude API rate limits)
+  private _quotaLimited: boolean = false;
+  private _quotaLimitedAt: number | undefined;
+  private _quotaRetryAt: number | undefined;
+
   // Store handler references for cleanup (prevents memory leaks)
   private _taskTrackerHandlers: {
     taskCreated: (task: BackgroundTask) => void;
@@ -650,6 +655,25 @@ export class Session extends EventEmitter {
     }
   }
 
+  // Quota limit accessors
+  get quotaLimited(): boolean {
+    return this._quotaLimited;
+  }
+
+  get quotaLimitedAt(): number | undefined {
+    return this._quotaLimitedAt;
+  }
+
+  get quotaRetryAt(): number | undefined {
+    return this._quotaRetryAt;
+  }
+
+  setQuotaLimited(limited: boolean, limitedAt?: number, retryAt?: number): void {
+    this._quotaLimited = limited;
+    this._quotaLimitedAt = limitedAt;
+    this._quotaRetryAt = retryAt;
+  }
+
   // Token tracking getters and setters
   get totalTokens(): number {
     return this._totalInputTokens + this._totalOutputTokens;
@@ -794,6 +818,9 @@ export class Session extends EventEmitter {
       cliLatestVersion: this._cliLatestVersion || undefined,
       openCodeConfig: this._openCodeConfig,
       resumeSessionId: this._resumeSessionId,
+      quotaLimited: this._quotaLimited || undefined,
+      quotaLimitedAt: this._quotaLimitedAt,
+      quotaRetryAt: this._quotaRetryAt,
     };
   }
 

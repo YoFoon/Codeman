@@ -26,7 +26,8 @@
     "capture:subagents": "node scripts/capture-subagent-screenshots.mjs",
     "changeset": "changeset",
     "version-packages": "changeset version",
-    "release": "changeset publish"
+    "release": "changeset publish",
+    "test:e2e": "playwright test"
   },
   "workspaces": [
     ".",
