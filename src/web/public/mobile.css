@@ -427,6 +427,40 @@ html.mobile-init .file-browser-panel {
     color: #fff;
   }
 
+  /* Mobile todo button */
+  .btn-todo-mobile {
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+    width: 26px;
+    height: 26px;
+    background: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 4px;
+    color: #9ca3af;
+    cursor: pointer;
+    flex-shrink: 0;
+    order: 7;
+  }
+
+  .btn-todo-mobile:active {
+    background: rgba(255, 255, 255, 0.1);
+    color: #fff;
+  }
+
+  /* Desktop todo button hidden on phone */
+  .btn-todo {
+    display: none !important;
+  }
+
+  /* Todo panel full-width on phone */
+  .todo-panel {
+    left: 8px;
+    right: 8px;
+    width: auto;
+    bottom: calc(40px + var(--safe-area-bottom));
+  }
+
   /* App container - prevent scrolling, strict layout */
   .app {
     overflow: hidden;
@@ -514,18 +548,21 @@ html.mobile-init .file-browser-panel {
     margin-left: -2px;
   }
 
-  /* Clean dark toolbar - positioned near bottom */
+  /* Clean dark toolbar - extends to physical bottom edge via padding-bottom.
+     bottom: 0 lets the background fill all the way to the screen edge;
+     padding-bottom pushes button content above the safe area (home indicator). */
   .toolbar {
     position: fixed;
-    bottom: var(--safe-area-bottom);
+    bottom: 0;
     left: 0;
     right: 0;
-    height: 40px;
-    min-height: 40px;
-    max-height: 40px;
+    height: calc(40px + var(--safe-area-bottom));
+    min-height: calc(40px + var(--safe-area-bottom));
+    max-height: calc(40px + var(--safe-area-bottom));
     padding: 0.3rem 0.4rem;
     padding-left: calc(0.4rem + var(--safe-area-left));
     padding-right: calc(0.4rem + var(--safe-area-right));
+    padding-bottom: calc(0.3rem + var(--safe-area-bottom));
     flex-wrap: nowrap;
     gap: 0.3rem;
     align-items: center;
@@ -539,11 +576,12 @@ html.mobile-init .file-browser-panel {
     will-change: transform;
   }
 
-  /* iOS Safari with tab bar: position: fixed uses the layout viewport which
-     extends behind the browser chrome. Offset the toolbar upward by the delta
-     between 100vh (layout) and --app-height (visual). */
+  /* iOS Safari with tab bar: offset toolbar above the browser chrome delta.
+     bottom: 0 on iOS 15+ is already above browser chrome (visual viewport),
+     but on older Safari the layout viewport extends further — add delta offset. */
   .ios-device.safari-browser .toolbar {
-    bottom: calc(var(--safe-area-bottom) + (100vh - var(--app-height, 100vh)));
+    bottom: calc(100vh - var(--app-height, 100vh));
+    padding-bottom: calc(0.3rem + var(--safe-area-bottom) + (100vh - var(--app-height, 100vh)));
   }
 
   /* Show case selector in center */

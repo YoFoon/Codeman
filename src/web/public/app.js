@@ -796,21 +796,23 @@ class CodemanApp {
           }
           this.flushFlickerBuffer();
         }
+        // Skip server resize while mobile keyboard is visible — sending SIGWINCH
+        // causes Ink to re-render at the new row count, garbling terminal output.
+        // Local fit() still runs so xterm knows the viewport size for scrolling.
+        const keyboardUp = typeof KeyboardHandler !== 'undefined' && KeyboardHandler.keyboardVisible;
         // Clear viewport + scrollback for Ink-based sessions before sending SIGWINCH.
         // fitAddon.fit() reflows content: lines at old width may wrap to more rows,
         // pushing overflow into scrollback. Ink's cursor-up count is based on the
         // pre-reflow line count, so ghost renders accumulate in scrollback.
         // Fix: \x1b[3J (Erase Saved Lines) clears scrollback reflow debris,
         // then \x1b[H\x1b[2J clears the viewport for a clean Ink redraw.
+        // Skip clear when mobile keyboard is visible — clearing the terminal
+        // while the user is typing causes the input area to disappear.
         const activeResizeSession = this.activeSessionId ? this.sessions.get(this.activeSessionId) : null;
         if (activeResizeSession && activeResizeSession.mode !== 'shell' && !activeResizeSession._ended
-            && this.terminal && this.isTerminalAtBottom()) {
+            && this.terminal && this.isTerminalAtBottom() && !keyboardUp) {
           this.terminal.write('\x1b[3J\x1b[H\x1b[2J');
         }
-        // Skip server resize while mobile keyboard is visible — sending SIGWINCH
-        // causes Ink to re-render at the new row count, garbling terminal output.
-        // Local fit() still runs so xterm knows the viewport size for scrolling.
-        const keyboardUp = typeof KeyboardHandler !== 'undefined' && KeyboardHandler.keyboardVisible;
         if (this.activeSessionId && !keyboardUp) {
           const dims = this.fitAddon.proposeDimensions();
           // Enforce minimum dimensions to prevent layout issues
@@ -12478,6 +12480,121 @@ class CodemanApp {
         memBar.classList.add('medium');
       }
     }
+  }
+
+  // ── Project Todos Panel ──
+
+  toggleTodoPanel() {
+    const panel = document.getElementById('todoPanel');
+    if (!panel) return;
+    if (panel.classList.contains('hidden')) {
+      panel.classList.remove('hidden');
+      this._refreshTodoPanel();
+    } else {
+      panel.classList.add('hidden');
+    }
+  }
+
+  _getTodoPanelProjectDir() {
+    if (!this.activeSessionId) return null;
+    const session = this.sessions.get(this.activeSessionId);
+    return session?.workingDir || null;
+  }
+
+  async _refreshTodoPanel() {
+    const projectDir = this._getTodoPanelProjectDir();
+    const titleEl = document.getElementById('todoPanelTitle');
+    const listEl = document.getElementById('todoPanelList');
+    if (!listEl) return;
+
+    if (!projectDir) {
+      listEl.innerHTML = '<div class="todo-empty">无活跃项目</div>';
+      if (titleEl) titleEl.textContent = '项目待办';
+      return;
+    }
+
+    const shortName = projectDir.split('/').pop() || '待办';
+    if (titleEl) titleEl.textContent = shortName;
+
+    try {
+      const res = await fetch(`/api/todos?projectDir=${encodeURIComponent(projectDir)}`);
+      const data = await res.json();
+      this._renderTodos(data.data || [], listEl, projectDir);
+    } catch {
+      listEl.innerHTML = '<div class="todo-empty">加载失败</div>';
+    }
+  }
+
+  _renderTodos(todos, listEl, projectDir) {
+    if (todos.length === 0) {
+      listEl.innerHTML = '<div class="todo-empty">暂无待办，添加一条吧</div>';
+      return;
+    }
+    const pending = todos.filter(t => t.status === 'pending' || t.status === 'in_progress');
+    const done = todos.filter(t => t.status === 'done' || t.status === 'cancelled');
+    let html = pending.map(t => this._todoItemHtml(t)).join('');
+    if (done.length > 0) {
+      html += `<div class="todo-done-sep">已完成 (${done.length})</div>`;
+      html += done.map(t => this._todoItemHtml(t)).join('');
+    }
+    listEl.innerHTML = html;
+    listEl.querySelectorAll('.todo-check').forEach(btn => {
+      btn.addEventListener('click', () => this._toggleTodoDone(btn.dataset.id, projectDir));
+    });
+    listEl.querySelectorAll('.todo-delete').forEach(btn => {
+      btn.addEventListener('click', () => this._deleteTodoItem(btn.dataset.id));
+    });
+  }
+
+  _todoItemHtml(todo) {
+    const isDone = todo.status === 'done' || todo.status === 'cancelled';
+    const icon = todo.type === 'brainstorm' ? '💡' : (isDone ? '✓' : '○');
+    return `<div class="todo-item${isDone ? ' done' : ''}">
+      <button class="todo-check" data-id="${escapeHtml(todo.id)}" title="${isDone ? '标为待办' : '标为完成'}">${icon}</button>
+      <span class="todo-text">${escapeHtml(todo.content)}</span>
+      <button class="todo-delete" data-id="${escapeHtml(todo.id)}" title="删除">×</button>
+    </div>`;
+  }
+
+  async _toggleTodoDone(id, projectDir) {
+    try {
+      const res = await fetch(`/api/todos?projectDir=${encodeURIComponent(projectDir)}`);
+      const data = await res.json();
+      const todo = (data.data || []).find(t => t.id === id);
+      if (!todo) return;
+      const newStatus = (todo.status === 'done' || todo.status === 'cancelled') ? 'pending' : 'done';
+      await fetch(`/api/todos/${encodeURIComponent(id)}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: newStatus }),
+      });
+      this._refreshTodoPanel();
+    } catch {}
+  }
+
+  async _deleteTodoItem(id) {
+    try {
+      await fetch(`/api/todos/${encodeURIComponent(id)}`, { method: 'DELETE' });
+      this._refreshTodoPanel();
+    } catch {}
+  }
+
+  async addTodoFromPanel() {
+    const input = document.getElementById('todoInput');
+    const typeSelect = document.getElementById('todoType');
+    const content = input?.value.trim();
+    if (!content) return;
+    const projectDir = this._getTodoPanelProjectDir();
+    if (!projectDir) return;
+    try {
+      await fetch('/api/todos', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ projectDir, content, type: typeSelect?.value || 'todo' }),
+      });
+      if (input) input.value = '';
+      this._refreshTodoPanel();
+    } catch {}
   }
 
 }

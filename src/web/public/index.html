@@ -377,6 +377,9 @@
             </svg>
           </button>
           <button class="btn-settings-mobile" onclick="app.openAppSettings()" title="应用设置">&#x2699;</button>
+          <button class="btn-todo-mobile" onclick="app.toggleTodoPanel()" title="项目待办">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+          </button>
           <button class="btn-toolbar btn-case-mobile" onclick="app.showMobileCasePicker()" title="选择 Case">
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
             <span id="mobileCaseName">Case</span>
@@ -413,9 +416,32 @@
       </div>
 
       <div class="toolbar-right">
+        <button class="btn-toolbar btn-todo" onclick="app.toggleTodoPanel()" title="项目待办">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+          <span class="todo-btn-label">待办</span>
+        </button>
         <span class="version-display" id="versionDisplay" title="Codeman version">v0.0.0</span>
       </div>
     </footer>
+
+    <!-- Project Todo Panel -->
+    <div class="todo-panel hidden" id="todoPanel">
+      <div class="todo-panel-header">
+        <span class="todo-panel-title" id="todoPanelTitle">项目待办</span>
+        <button class="todo-panel-close" onclick="app.toggleTodoPanel()" title="关闭">×</button>
+      </div>
+      <div class="todo-panel-list" id="todoPanelList">
+        <div class="todo-empty">选择 Session 后查看待办</div>
+      </div>
+      <div class="todo-panel-add">
+        <select class="todo-type-select" id="todoType">
+          <option value="todo">待办</option>
+          <option value="brainstorm">💡 脑暴</option>
+        </select>
+        <input type="text" class="todo-input" id="todoInput" placeholder="添加待办..." onkeydown="if(event.key==='Enter')app.addTodoFromPanel()">
+        <button class="todo-add-btn" onclick="app.addTodoFromPanel()">+</button>
+      </div>
+    </div>
 
     <!-- Help Modal -->
     <div class="modal" id="helpModal">
