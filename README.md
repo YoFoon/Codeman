@@ -35,11 +35,6 @@ codeman web
 # Open http://localhost:3000 — press Ctrl+Enter to start your first session
 ```
 
-**Update to latest version:**
-```bash
-curl -fsSL https://raw.githubusercontent.com/Ark0N/Codeman/master/install.sh | bash -s update
-```
-
 <details>
 <summary><strong>Run as a background service</strong></summary>
 

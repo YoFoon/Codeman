@@ -1355,5 +1355,12 @@ uninstall() {
 case "${1:-}" in
     update)    update ;;
     uninstall) uninstall ;;
-    *)         main "$@" ;;
+    *)
+        if [[ -z "${1:-}" && -d "$INSTALL_DIR/.git" ]]; then
+            print_banner
+            update
+        else
+            main "$@"
+        fi
+        ;;
 esac
