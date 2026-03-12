@@ -1283,7 +1283,15 @@ update() {
     npm run build --quiet 2>/dev/null || npm run build
     success "Updated to $(node -e "console.log(require('./package.json').version)")"
     echo ""
-    echo -e "  ${DIM}Restart codeman web to use the new version.${NC}"
+
+    # Auto-restart systemd service if it's running, otherwise tell the user
+    if systemctl --user is-active codeman-web.service &>/dev/null; then
+        info "Restarting codeman-web service..."
+        systemctl --user restart codeman-web.service
+        success "codeman-web service restarted"
+    else
+        echo -e "  ${DIM}Restart codeman web to use the new version.${NC}"
+    fi
     echo ""
 }
 
