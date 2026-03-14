@@ -109,7 +109,7 @@ Codeman is a Claude Code session manager with web interface and autonomous Ralph
 | **Infra** | `src/hooks-config.ts`, `src/push-store.ts`, `src/tunnel-manager.ts`, `src/image-watcher.ts`, `src/file-stream-manager.ts` | |
 | **Plan** | `src/plan-orchestrator.ts`, `src/prompts/*.ts`, `src/templates/claude-md.ts` | |
 | **Web** | `src/web/server.ts`, `src/web/sse-events.ts`, `src/web/routes/*.ts` (13 route modules incl. `ws-routes.ts` + barrel), `src/web/ports/*.ts`, `src/web/middleware/auth.ts`, `src/web/schemas.ts` | |
-| **Frontend** | `src/web/public/app.js` ★ (~12.5K lines) + 11 JS modules (incl. `sw.js`, `input-cjk.js`) | |
+| **Frontend** | `src/web/public/app.js` (~2.6K lines, core) + 6 domain modules (`terminal-ui.js`, `respawn-ui.js`, `ralph-panel.js`, `settings-ui.js`, `panels-ui.js`, `session-ui.js`) + 5 existing modules (`ralph-wizard.js`, `api-client.js`, `subagent-windows.js`, `sw.js`, `input-cjk.js`) | |
 | **Types** | `src/types/index.ts` → 13 domain files | See `@fileoverview` in index.ts |
 
 ★ = Large file (>50KB). All files have `@fileoverview` JSDoc — read that before diving in.
@@ -143,7 +143,7 @@ Codeman is a Claude Code session manager with web interface and autonomous Ralph
 
 ### Frontend
 
-Frontend JS modules have `@fileoverview` with `@dependency`/`@loadorder` tags. Load order: `constants.js`(1) → `mobile-handlers.js`(2) → `voice-input.js`(3) → `notification-manager.js`(4) → `keyboard-accessory.js`(5) → `input-cjk.js`(5.5) → `app.js`(6) → `ralph-wizard.js`(7) → `api-client.js`(8) → `subagent-windows.js`(9). `input-cjk.js` handles CJK IME composition via an always-visible textarea below the terminal (`window.cjkActive` blocks xterm's onData).
+Frontend JS modules have `@fileoverview` with `@dependency`/`@loadorder` tags. Load order: `constants.js`(1) → `mobile-handlers.js`(2) → `voice-input.js`(3) → `notification-manager.js`(4) → `keyboard-accessory.js`(5) → `input-cjk.js`(5.5) → `app.js`(6) → `terminal-ui.js`(7) → `respawn-ui.js`(8) → `ralph-panel.js`(9) → `settings-ui.js`(10) → `panels-ui.js`(11) → `session-ui.js`(12) → `ralph-wizard.js`(13) → `api-client.js`(14) → `subagent-windows.js`(15). `input-cjk.js` handles CJK IME composition via an always-visible textarea below the terminal (`window.cjkActive` blocks xterm's onData).
 
 **Z-index layers**: subagent windows (1000), plan agents (1100), log viewers (2000), image popups (3000), local echo overlay (7).
 

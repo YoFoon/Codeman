@@ -19,7 +19,7 @@
  * @globals {object} SwipeHandler
  *
  * @dependency keyboard-accessory.js (KeyboardAccessoryBar reference in KeyboardHandler.onKeyboardShow, soft — guarded with typeof check)
- * @loadorder 2 of 9 — loaded after constants.js, before voice-input.js
+ * @loadorder 2 of 15 — loaded after constants.js, before voice-input.js
  */
 
 // Codeman — Mobile detection, keyboard handling, and swipe navigation

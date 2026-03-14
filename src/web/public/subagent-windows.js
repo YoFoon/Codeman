@@ -15,7 +15,7 @@
  * @mixin Extends CodemanApp.prototype via Object.assign
  * @dependency app.js (CodemanApp class, this.subagents, this.subagentWindows, this.minimizedSubagents)
  * @dependency constants.js (escapeHtml)
- * @loadorder 9 of 9 — loaded last, after api-client.js
+ * @loadorder 15 of 15 — loaded last, after api-client.js
  */
 
 // Codeman — Subagent window management for CodemanApp
@@ -991,7 +991,7 @@ Object.assign(CodemanApp.prototype, {
     }
 
     // Clean up wizard drag listeners (leak fix: document-level handlers)
-    this.cleanupWizardDragging();
+    if (typeof this.cleanupWizardDragging === 'function') this.cleanupWizardDragging();
 
     // Deactivate focus trap if wizard was open (leak fix: keydown listener)
     if (this.activeFocusTrap) {

@@ -9,7 +9,7 @@
  *
  * @dependency index.html (#cjkInput textarea)
  * @globals {object} CjkInput — window.cjkActive (boolean) signals app.js to block xterm onData
- * @loadorder 5.5 of 10 — loaded after keyboard-accessory.js, before app.js
+ * @loadorder 5.5 of 15 — loaded after keyboard-accessory.js, before app.js
  */
 
 // eslint-disable-next-line no-unused-vars
