@@ -1882,6 +1882,13 @@ body {
   position: relative;
 }
 
+.terminal-wrap {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
 .terminal-container {
   flex: 1;
   background: #0d0d0d;
@@ -7501,4 +7508,35 @@ kbd {
 
 .advanced-options-content {
   padding-left: 0.5rem;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   CJK IME Input
+   ═══════════════════════════════════════════════════════════════ */
+
+#cjkInput {
+  display: none;
+  flex-shrink: 0;
+  width: 100%;
+  font-family: 'Fira Code', 'Cascadia Code', 'JetBrains Mono', 'SF Mono', Monaco, monospace;
+  font-size: 14px;
+  background: #1a1a2e;
+  color: #e0e0e0;
+  border: 1px solid #333;
+  border-top: none;
+  padding: 6px 10px;
+  outline: none;
+  resize: none;
+  line-height: 1.4;
+  box-sizing: border-box;
+}
+
+#cjkInput:focus {
+  border-color: #339af0;
+  background: #111;
+}
+
+#cjkInput::placeholder {
+  color: #495057;
+  font-size: 12px;
 }

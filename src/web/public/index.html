@@ -231,7 +231,11 @@
 
     <!-- Main Terminal Area -->
     <main class="main">
-      <div class="terminal-container" id="terminalContainer"></div>
+      <div class="terminal-wrap">
+        <div class="terminal-container" id="terminalContainer"></div>
+        <textarea id="cjkInput" rows="1" placeholder="CJK 입력 → Enter 전송 / ESC 취소"
+          autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"></textarea>
+      </div>
 
       <!-- Welcome Overlay (shown when no session active) -->
       <div class="welcome-overlay" id="welcomeOverlay">
@@ -1689,6 +1693,7 @@
   <script defer src="voice-input.js"></script>
   <script defer src="notification-manager.js"></script>
   <script defer src="keyboard-accessory.js"></script>
+  <script defer src="input-cjk.js"></script>
   <script defer src="app.js"></script>
   <script defer src="ralph-wizard.js"></script>
   <script defer src="api-client.js"></script>

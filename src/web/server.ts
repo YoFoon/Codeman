@@ -1947,6 +1947,7 @@ export class WebServer extends EventEmitter {
       globalStats: this.store.getAggregateStats(activeSessionTokens),
       subagents: subagentWatcher.getRecentSubagents(15), // 15 min to avoid stale agents
       timestamp: now,
+      inputCjkForm: process.env.INPUT_CJK_FORM?.toUpperCase() === 'ON',
     };
 
     this.cachedLightState = { data: result, timestamp: now };

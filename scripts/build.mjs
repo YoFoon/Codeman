@@ -59,6 +59,7 @@ appendFileSync(
 );
 
 // 4. Minify frontend assets
+run('minify input-cjk.js', 'npx esbuild dist/web/public/input-cjk.js --minify --outfile=dist/web/public/input-cjk.js --allow-overwrite');
 run('minify app.js', 'npx esbuild dist/web/public/app.js --minify --outfile=dist/web/public/app.js --allow-overwrite');
 run('minify styles.css', 'npx esbuild dist/web/public/styles.css --minify --outfile=dist/web/public/styles.css --allow-overwrite');
 run('minify mobile.css', 'npx esbuild dist/web/public/mobile.css --minify --outfile=dist/web/public/mobile.css --allow-overwrite');
@@ -75,6 +76,7 @@ console.log('\n[build] content-hash cache busting');
     'voice-input.js',
     'notification-manager.js',
     'keyboard-accessory.js',
+    'input-cjk.js',
     'app.js',
     'ralph-wizard.js',
     'api-client.js',

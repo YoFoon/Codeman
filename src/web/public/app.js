@@ -623,6 +623,14 @@ class CodemanApp {
     const container = document.getElementById('terminalContainer');
     this.terminal.open(container);
 
+    // Suppress xterm key handling during CJK IME composition.
+    // Without this, xterm processes raw keyDown events (e.g., "Process" key)
+    // during composition, causing duplicate or garbled input.
+    this.terminal.attachCustomKeyEventHandler((ev) => {
+      if (ev.isComposing || ev.keyCode === 229) return false;
+      return true;
+    });
+
     // WebGL renderer for GPU-accelerated terminal rendering.
     // Previously caused "page unresponsive" crashes from synchronous GPU stalls,
     // but the 48KB/frame flush cap in flushPendingWrites() now prevents
@@ -644,6 +652,18 @@ class CodemanApp {
     }
 
     this._localEchoOverlay = new LocalEchoOverlay(this.terminal);
+
+    // CJK IME input — textarea in index.html, just wire up send
+    this._cjkInput = null;
+    if (typeof CjkInput !== 'undefined') {
+      this._cjkInput = CjkInput.init({
+        send: (text) => {
+          if (this.activeSessionId) {
+            this._sendInputAsync(this.activeSessionId, text);
+          }
+        },
+      });
+    }
 
     // On mobile Safari, delay initial fit() to allow layout to settle
     // This prevents 0-column terminals caused by fit() running before container is sized
@@ -857,6 +877,8 @@ class CodemanApp {
     // survives tab switches and reconnects.
 
     this.terminal.onData((data) => {
+      // CJK input has focus — block xterm from sending to PTY
+      if (window.cjkActive || document.activeElement?.id === 'cjkInput') return;
       if (this.activeSessionId) {
         // Filter out terminal query responses that xterm.js generates automatically.
         // These are responses to DA (Device Attributes), DSR (Device Status Report), etc.
@@ -1632,6 +1654,9 @@ class CodemanApp {
   setupEventListeners() {
     // Use capture to handle before terminal
     document.addEventListener('keydown', (e) => {
+      // Don't intercept keys during CJK IME composition
+      if (e.isComposing || e.keyCode === 229) return;
+
       // Escape - close panels and modals
       if (e.key === 'Escape') {
         this.closeAllPanels();
@@ -2960,6 +2985,10 @@ class CodemanApp {
     }
     const gen = ++this._initGeneration;
 
+    // CJK input form: show/hide based on server env INPUT_CJK_FORM=ON
+    const cjkEl = document.getElementById('cjkInput');
+    if (cjkEl) cjkEl.style.display = data.inputCjkForm ? 'block' : 'none';
+
     // Update version displays (header and toolbar)
     if (data.version) {
       const versionEl = this.$('versionDisplay');
@@ -3669,7 +3698,6 @@ class CodemanApp {
         if (ta) ta.dispatchEvent(new CompositionEvent('compositionend', { data: '' }));
       }
     } catch {}
-
     // Flush local echo text to PTY before switching tabs.
     // Send as a single batch (no Enter) so it lands in the session's readline
     // input buffer — avoids "old text resent on Enter" and overlay render bugs.
