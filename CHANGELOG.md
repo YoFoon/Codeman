@@ -1,10 +1,83 @@
 # aicodeman
 
+## 0.4.4
+
+### Patch Changes
+
+- fix: mobile keyboard hides terminal content on iPhone
+
+  Fixed a bug where opening the virtual keyboard on iPhone left zero visible terminal space. Two independent mechanisms were both accounting for the keyboard height: `MobileDetection.updateAppHeight()` shrunk `--app-height` to the visual viewport height, while `KeyboardHandler.updateLayoutForKeyboard()` added a large `paddingBottom`. These double-counted, leaving negative space for the terminal (user saw accessory bar + toolbar but no terminal content).
+
+  Fix: `updateAppHeight()` now skips when the keyboard is visible, and `handleViewportResize()` restores `--app-height` to the pre-keyboard value on first detection (since MobileDetection's listener fires before KeyboardHandler's). On keyboard close, `--app-height` is re-synced to the current visual viewport.
+
+## 0.4.3
+
+### Patch Changes
+
+- Refactor case routes: extract readLinkedCases() and resolveCasePath() helpers to eliminate 6x duplicated linked-cases.json path construction and 5x duplicated file read/parse logic. Replace O(n) .some() duplicate check with O(1) Set.has() in case listing. Un-export unused isError() type guard. Standardize reply.status() to reply.code() in system routes. Update CLAUDE.md frontend module listing and SSE event count.
+
+## 0.4.2
+
+### Patch Changes
+
+- Extract monolithic app.js (~12.5K lines) into 6 focused domain modules that extend CodemanApp.prototype via Object.assign: terminal-ui.js (terminal setup, rendering pipeline, controls), respawn-ui.js (respawn banner, countdown, presets, run summary), ralph-panel.js (Ralph state panel, fix_plan, plan versioning), settings-ui.js (app settings, visibility, web push, tunnel/QR, help), panels-ui.js (subagent panel, teams, insights, file browser, log viewer), session-ui.js (quick start, session options, case settings). Fix critical deferred script init ordering bug: wrap CodemanApp instantiation in DOMContentLoaded so all defer'd mixin modules execute their Object.assign before the constructor runs. Guard missing cleanupWizardDragging() call in subagent-windows.js. Update build.mjs to minify/hash all new modules.
+
+## 0.4.1
+
+### Patch Changes
+
+- Performance optimizations: V8 compile cache for 10-20% faster cold starts, lazy-load WebGL addon (244KB saved on mobile), preload hints for critical scripts, batch tmux reconciliation (N subprocess calls → 1). Also: WebSocket session lifecycle fixes, CJK IME input support, CI upgrade to Node 24/actions v6, install.sh fork support, and CLAUDE.md/README documentation refresh.
+
 ## 0.4.0
 
 ### Minor Changes
 
-- Add five features: disable rate limiting via env var, Chinese UI localization, global resource guard (90% CPU/memory threshold), Claude quota recovery auto-restart, project todo list with auto-respawn trigger. Fix mobile typing focus loss and improve tab UX on phones.
+- Add CJK IME input textarea for xterm.js terminal (env toggle INPUT_CJK_FORM=ON). Always-visible textarea below terminal handles native browser IME composition, forwarding completed text to PTY on Enter. Supports arrow keys, Ctrl combos, backspace passthrough, and Escape to clear.
+
+  Add fork installation support to install.sh with CODEMAN_REPO_URL and CODEMAN_BRANCH env vars, allowing custom repository and branch for git clone/update operations. README updated with fork installation instructions.
+
+  Fix WebSocket session lifecycle: close WS connections when session exits (prevents orphaned listeners and stale writes to dead PTY), add readyState guard in onTerminal to stop buffering after socket closes, simplify heartbeat by removing redundant alive flag.
+
+  Add WebSocket reconnection with exponential backoff (1s-10s) on unexpected close, skipping server rejection codes (4004/4008/4009). Falls back gracefully to SSE+POST during reconnection.
+
+  Clear CJK textarea on session switch to prevent sending stale text to wrong session.
+
+## 0.3.12
+
+### Patch Changes
+
+- Add WebSocket terminal I/O with server-side DEC 2026 synchronized update markers. Replaces per-keystroke HTTP POST + SSE terminal output with a single bidirectional WebSocket connection for dramatically lower input latency. Server-side 8ms micro-batching with 16KB flush threshold groups rapid PTY events into single WS frames wrapped in DEC 2026 markers for flicker-free atomic rendering. Includes 30s ping/pong heartbeat with 10s timeout for stale connection detection through tunnels. Existing SSE + HTTP POST paths remain fully functional as transparent fallback. Resize messages validated to match HTTP route bounds (cols 1-500, rows 1-200, integers only). 16 automated route tests added for WS endpoint. Also patches 5 dependency vulnerabilities (basic-ftp, fastify, minimatch, serialize-javascript).
+
+## 0.3.11
+
+### Patch Changes
+
+- ### Session Resume & History
+  - Add `resumeSessionId` support for conversation resume after reboot
+  - Add history session resume UI and API with route shell sessions routing fix
+  - Improve session resume reliability and persist user settings across refresh
+  - Correct `claudeSessionId` for resumed sessions
+
+  ### Terminal & Frontend
+  - Upgrade xterm.js 5.3 → 6.0 with native DEC 2026 synchronized output
+  - Increase terminal scrollback from 5,000 to 20,000 lines
+  - Reduce default font size and persist tab state across refresh
+  - Resolve terminal resize scrollback ghost renders
+  - Hide subagent monitor panel by default
+
+  ### Installer
+  - Auto-detect existing install and run update instead of fresh install
+  - Auto-restart codeman-web service after update if running
+  - Show restart command when codeman-web is not a systemd service
+  - Fix one-liner restart command for background processes
+
+  ### Codebase Quality
+  - Remove dead code, consolidate imports, extract constants
+  - Repair 15 pre-existing subagent-watcher test failures
+  - Clean up DEC sync dead code
+
+## 0.3.10
+
 ### Patch Changes
 
 - - feat: upgrade xterm.js from 5.3 to 6.0 with native DEC 2026 synchronized output support

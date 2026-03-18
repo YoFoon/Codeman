@@ -19,7 +19,7 @@
  *
  * @dependency mobile-handlers.js (MobileDetection for device checks)
  * @dependency app.js (uses global `app` for sendInput, showToast, terminal focus)
- * @loadorder 3 of 9 — loaded after mobile-handlers.js, before notification-manager.js
+ * @loadorder 3 of 15 — loaded after mobile-handlers.js, before notification-manager.js
  */
 
 // Codeman — Voice input with Deepgram Nova-3 and Web Speech API fallback

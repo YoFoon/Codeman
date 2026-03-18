@@ -40,8 +40,7 @@ import {
   type SessionMode,
   type OpenCodeConfig,
 } from './types.js';
-import { wrapWithNice } from './utils/nice-wrapper.js';
-import { SAFE_PATH_PATTERN } from './utils/regex-patterns.js';
+import { wrapWithNice, SAFE_PATH_PATTERN, findClaudeDir, resolveOpenCodeDir } from './utils/index.js';
 import type {
   TerminalMultiplexer,
   MuxSession,
@@ -49,11 +48,6 @@ import type {
   CreateSessionOptions,
   RespawnPaneOptions,
 } from './mux-interface.js';
-
-// Claude CLI PATH resolution — shared utility
-import { findClaudeDir } from './utils/claude-cli-resolver.js';
-// OpenCode CLI PATH resolution
-import { resolveOpenCodeDir } from './utils/opencode-cli-resolver.js';
 
 // ============================================================================
 // Timing Constants
@@ -911,13 +905,34 @@ export class TmuxManager extends EventEmitter implements TerminalMultiplexer {
     const dead: string[] = [];
     const discovered: string[] = [];
 
-    // Check known sessions
+    // Batch: single tmux call to get all session names + pane PIDs (replaces N per-session subprocess calls)
+    const activeSessions = new Map<string, number>();
+    try {
+      const output = execSync("tmux list-panes -a -F '#{session_name}\t#{pane_pid}' 2>/dev/null || true", {
+        encoding: 'utf-8',
+        timeout: EXEC_TIMEOUT_MS,
+      }).trim();
+
+      for (const line of output.split('\n')) {
+        if (!line) continue;
+        const sep = line.indexOf('\t');
+        if (sep === -1) continue;
+        const name = line.slice(0, sep);
+        const pid = parseInt(line.slice(sep + 1), 10);
+        if (name && !Number.isNaN(pid)) {
+          activeSessions.set(name, pid);
+        }
+      }
+    } catch (err) {
+      console.error('[TmuxManager] Failed to list tmux panes:', err);
+    }
+
+    // Check known sessions against the batch result (O(1) map lookup instead of subprocess per session)
     for (const [sessionId, session] of this.sessions) {
-      if (this.sessionExists(session.muxName)) {
+      const pid = activeSessions.get(session.muxName);
+      if (pid !== undefined) {
         alive.push(sessionId);
-        // Update PID if it changed
-        const pid = this.getPanePid(session.muxName);
-        if (pid && pid !== session.pid) {
+        if (pid !== session.pid) {
           session.pid = pid;
         }
       } else {
@@ -927,51 +942,31 @@ export class TmuxManager extends EventEmitter implements TerminalMultiplexer {
       }
     }
 
-    // Discover unknown codeman sessions
-    try {
-      const output = execSync("tmux list-sessions -F '#{session_name}' 2>/dev/null || true", {
-        encoding: 'utf-8',
-        timeout: EXEC_TIMEOUT_MS,
-      }).trim();
+    // Discover unknown codeman/claudeman sessions from the same batch result
+    const knownMuxNames = new Set<string>();
+    for (const session of this.sessions.values()) {
+      knownMuxNames.add(session.muxName);
+    }
 
-      for (const line of output.split('\n')) {
-        const sessionName = line.trim();
-        if (!sessionName || (!sessionName.startsWith('codeman-') && !sessionName.startsWith('claudeman-'))) continue;
+    for (const [sessionName, pid] of activeSessions) {
+      if (!sessionName.startsWith('codeman-') && !sessionName.startsWith('claudeman-')) continue;
+      if (knownMuxNames.has(sessionName)) continue;
 
-        // Check if this session is already known
-        let isKnown = false;
-        for (const session of this.sessions.values()) {
-          if (session.muxName === sessionName) {
-            isKnown = true;
-            break;
-          }
-        }
-
-        if (!isKnown) {
-          // Extract session ID fragment from name
-          const fragment = sessionName.replace(/^(?:codeman|claudeman)-/, '');
-          const sessionId = `restored-${fragment}`;
-          const pid = this.getPanePid(sessionName);
-
-          if (pid) {
-            const session: MuxSession = {
-              sessionId,
-              muxName: sessionName,
-              pid,
-              createdAt: Date.now(),
-              workingDir: process.cwd(),
-              mode: 'claude',
-              attached: false,
-              name: `Restored: ${sessionName}`,
-            };
-            this.sessions.set(sessionId, session);
-            discovered.push(sessionId);
-            console.log(`[TmuxManager] Discovered unknown tmux session: ${sessionName} (PID ${pid})`);
-          }
-        }
-      }
-    } catch (err) {
-      console.error('[TmuxManager] Failed to discover sessions:', err);
+      const fragment = sessionName.replace(/^(?:codeman|claudeman)-/, '');
+      const sessionId = `restored-${fragment}`;
+      const session: MuxSession = {
+        sessionId,
+        muxName: sessionName,
+        pid,
+        createdAt: Date.now(),
+        workingDir: process.cwd(),
+        mode: 'claude',
+        attached: false,
+        name: `Restored: ${sessionName}`,
+      };
+      this.sessions.set(sessionId, session);
+      discovered.push(sessionId);
+      console.log(`[TmuxManager] Discovered unknown tmux session: ${sessionName} (PID ${pid})`);
     }
 
     if (dead.length > 0 || discovered.length > 0) {

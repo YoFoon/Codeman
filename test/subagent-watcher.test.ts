@@ -100,11 +100,7 @@ function createAssistantTextEntry(text: string, timestamp?: string): string {
   });
 }
 
-function createToolUseEntry(
-  toolName: string,
-  input: Record<string, unknown>,
-  timestamp?: string
-): string {
+function createToolUseEntry(toolName: string, input: Record<string, unknown>, timestamp?: string): string {
   return JSON.stringify({
     type: 'assistant',
     timestamp: timestamp || new Date().toISOString(),
@@ -132,6 +128,13 @@ function createToolResultEntry(content: string, timestamp?: string): string {
       content: [{ type: 'tool_result', content }],
     },
   });
+}
+
+/** Create a mock readline interface with .close() method */
+function createMockRl() {
+  const rl = new EventEmitter() as EventEmitter & { close: ReturnType<typeof vi.fn> };
+  rl.close = vi.fn();
+  return rl;
 }
 
 describe('SubagentWatcher', () => {
@@ -166,12 +169,12 @@ describe('SubagentWatcher', () => {
 
     // Default mocks - no projects exist
     mockExistsSync.mockReturnValue(false);
-    mockStatSync.mockReturnValue({
+    mockStatSync.mockImplementation(() => ({
       isDirectory: () => true,
       birthtime: new Date(),
       mtime: new Date(),
       size: 0,
-    });
+    }));
     mockReaddirSync.mockReturnValue([]);
     mockReadFileSync.mockReturnValue('');
     mockWatch.mockReturnValue({ close: vi.fn(), on: vi.fn(), off: vi.fn() });
@@ -239,9 +242,9 @@ describe('SubagentWatcher', () => {
       const lines = [validEntry];
 
       // Setup mock readline interface
-      const mockRl = new EventEmitter();
+      const mockRl = createMockRl();
       mockCreateInterface.mockReturnValue(mockRl);
-      mockCreateReadStream.mockReturnValue({});
+      mockCreateReadStream.mockReturnValue({ destroy: vi.fn() });
 
       // Setup file discovery
       mockExistsSync.mockReturnValue(true);
@@ -281,16 +284,11 @@ describe('SubagentWatcher', () => {
 
     it('should skip malformed JSON lines', async () => {
       const validEntry = createUserEntry('Valid entry');
-      const malformedLines = [
-        'not json at all',
-        '{"incomplete": true',
-        validEntry,
-        '}{bad json}{',
-      ];
+      const malformedLines = ['not json at all', '{"incomplete": true', validEntry, '}{bad json}{'];
 
-      const mockRl = new EventEmitter();
+      const mockRl = createMockRl();
       mockCreateInterface.mockReturnValue(mockRl);
-      mockCreateReadStream.mockReturnValue({});
+      mockCreateReadStream.mockReturnValue({ destroy: vi.fn() });
 
       mockExistsSync.mockReturnValue(true);
       mockReaddirSync.mockImplementation((path: string) => {
@@ -330,9 +328,9 @@ describe('SubagentWatcher', () => {
       // Simulate partial write where line is incomplete
       const partialContent = '{"type": "user", "timestamp": "2024-01-01T00:00:00Z"';
 
-      const mockRl = new EventEmitter();
+      const mockRl = createMockRl();
       mockCreateInterface.mockReturnValue(mockRl);
-      mockCreateReadStream.mockReturnValue({});
+      mockCreateReadStream.mockReturnValue({ destroy: vi.fn() });
 
       mockExistsSync.mockReturnValue(true);
       mockReaddirSync.mockImplementation((path: string) => {
@@ -369,9 +367,9 @@ describe('SubagentWatcher', () => {
       const validEntry = createUserEntry('Valid');
       const contentWithEmptyLines = ['', validEntry, '   ', '', validEntry].join('\n');
 
-      const mockRl = new EventEmitter();
+      const mockRl = createMockRl();
       mockCreateInterface.mockReturnValue(mockRl);
-      mockCreateReadStream.mockReturnValue({});
+      mockCreateReadStream.mockReturnValue({ destroy: vi.fn() });
 
       mockExistsSync.mockReturnValue(true);
       mockReaddirSync.mockImplementation((path: string) => {
@@ -408,9 +406,9 @@ describe('SubagentWatcher', () => {
 
   describe('Status Lifecycle', () => {
     it('should start agents as active', async () => {
-      const mockRl = new EventEmitter();
+      const mockRl = createMockRl();
       mockCreateInterface.mockReturnValue(mockRl);
-      mockCreateReadStream.mockReturnValue({});
+      mockCreateReadStream.mockReturnValue({ destroy: vi.fn() });
 
       mockExistsSync.mockReturnValue(true);
       mockReaddirSync.mockImplementation((path: string) => {
@@ -442,9 +440,9 @@ describe('SubagentWatcher', () => {
     });
 
     it('should transition to idle after IDLE_TIMEOUT_MS (30s)', async () => {
-      const mockRl = new EventEmitter();
+      const mockRl = createMockRl();
       mockCreateInterface.mockReturnValue(mockRl);
-      mockCreateReadStream.mockReturnValue({});
+      mockCreateReadStream.mockReturnValue({ destroy: vi.fn() });
 
       mockExistsSync.mockReturnValue(true);
       mockReaddirSync.mockImplementation((path: string) => {
@@ -453,12 +451,12 @@ describe('SubagentWatcher', () => {
         if (path.includes('project1')) return ['session1'];
         return ['project1'];
       });
-      mockStatSync.mockReturnValue({
+      mockStatSync.mockImplementation(() => ({
         isDirectory: () => true,
         birthtime: new Date(),
         mtime: new Date(),
         size: 100,
-      });
+      }));
       mockReadFileSync.mockReturnValue(createUserEntry('Test subagent task'));
 
       watcher.start();
@@ -481,9 +479,9 @@ describe('SubagentWatcher', () => {
     });
 
     it('should reset to active on new activity', async () => {
-      const mockRl = new EventEmitter();
+      const mockRl = createMockRl();
       mockCreateInterface.mockReturnValue(mockRl);
-      mockCreateReadStream.mockReturnValue({});
+      mockCreateReadStream.mockReturnValue({ destroy: vi.fn() });
 
       const mockWatcher = { close: vi.fn(), on: vi.fn(), off: vi.fn() };
       mockWatch.mockReturnValue(mockWatcher);
@@ -495,12 +493,12 @@ describe('SubagentWatcher', () => {
         if (path.includes('project1')) return ['session1'];
         return ['project1'];
       });
-      mockStatSync.mockReturnValue({
+      mockStatSync.mockImplementation(() => ({
         isDirectory: () => true,
         birthtime: new Date(),
         mtime: new Date(),
         size: 100,
-      });
+      }));
       mockReadFileSync.mockReturnValue(createUserEntry('Test subagent task'));
 
       watcher.start();
@@ -514,19 +512,20 @@ describe('SubagentWatcher', () => {
       expect(watcher.getSubagents()[0].status).toBe('idle');
 
       // Simulate file change event - get the callback from mockWatch
-      const watchCallback = mockWatch.mock.calls.find(
-        (call: unknown[]) => typeof call[1] === 'function'
-      )?.[1];
+      const watchCallback = mockWatch.mock.calls.find((call: unknown[]) => typeof call[1] === 'function')?.[1];
 
       if (watchCallback) {
         // Need to reset the readline mock for the new read
-        const newMockRl = new EventEmitter();
+        const newMockRl = createMockRl();
         mockCreateInterface.mockReturnValue(newMockRl);
 
         // Trigger file change
         watchCallback('change', 'agent-reactive.jsonl');
 
-        // Complete the new readline
+        // Advance past the fileDeb debounce (100ms) so handleFileChange runs
+        await vi.advanceTimersByTimeAsync(150);
+
+        // Complete the new readline (tailFile)
         newMockRl.emit('close');
         await vi.advanceTimersByTimeAsync(100);
 
@@ -536,9 +535,9 @@ describe('SubagentWatcher', () => {
     });
 
     it('should transition to completed when file becomes stale', async () => {
-      const mockRl = new EventEmitter();
+      const mockRl = createMockRl();
       mockCreateInterface.mockReturnValue(mockRl);
-      mockCreateReadStream.mockReturnValue({});
+      mockCreateReadStream.mockReturnValue({ destroy: vi.fn() });
 
       mockExistsSync.mockReturnValue(true);
       mockReaddirSync.mockImplementation((path: string) => {
@@ -588,9 +587,10 @@ describe('SubagentWatcher', () => {
     it('should extract tool_use entries', async () => {
       const toolEntry = createToolUseEntry('WebSearch', { query: 'test query' });
 
-      const mockRl = new EventEmitter();
-      mockCreateInterface.mockReturnValue(mockRl);
-      mockCreateReadStream.mockReturnValue({});
+      const descRl = createMockRl();
+      const tailRl = createMockRl();
+      mockCreateInterface.mockReturnValueOnce(descRl).mockReturnValue(tailRl);
+      mockCreateReadStream.mockReturnValue({ destroy: vi.fn() });
 
       mockExistsSync.mockReturnValue(true);
       mockReaddirSync.mockImplementation((path: string) => {
@@ -612,9 +612,14 @@ describe('SubagentWatcher', () => {
 
       watcher.start();
       await flushAsyncScan();
-      mockRl.emit('line', toolEntry);
-      mockRl.emit('close');
 
+      // Resolve extractDescriptionFromFile
+      descRl.emit('close');
+      await vi.advanceTimersByTimeAsync(100);
+
+      // Now tailFile is set up — emit entries on tailRl
+      tailRl.emit('line', toolEntry);
+      tailRl.emit('close');
       await vi.advanceTimersByTimeAsync(100);
 
       expect(toolCallHandler).toHaveBeenCalled();
@@ -626,9 +631,10 @@ describe('SubagentWatcher', () => {
     it('should extract text messages', async () => {
       const textEntry = createAssistantTextEntry('This is the assistant response');
 
-      const mockRl = new EventEmitter();
-      mockCreateInterface.mockReturnValue(mockRl);
-      mockCreateReadStream.mockReturnValue({});
+      const descRl = createMockRl();
+      const tailRl = createMockRl();
+      mockCreateInterface.mockReturnValueOnce(descRl).mockReturnValue(tailRl);
+      mockCreateReadStream.mockReturnValue({ destroy: vi.fn() });
 
       mockExistsSync.mockReturnValue(true);
       mockReaddirSync.mockImplementation((path: string) => {
@@ -650,9 +656,14 @@ describe('SubagentWatcher', () => {
 
       watcher.start();
       await flushAsyncScan();
-      mockRl.emit('line', textEntry);
-      mockRl.emit('close');
 
+      // Resolve extractDescriptionFromFile
+      descRl.emit('close');
+      await vi.advanceTimersByTimeAsync(100);
+
+      // Now tailFile is set up — emit entries on tailRl
+      tailRl.emit('line', textEntry);
+      tailRl.emit('close');
       await vi.advanceTimersByTimeAsync(100);
 
       expect(messageHandler).toHaveBeenCalled();
@@ -682,9 +693,9 @@ describe('SubagentWatcher', () => {
         },
       });
 
-      const mockRl = new EventEmitter();
+      const mockRl = createMockRl();
       mockCreateInterface.mockReturnValue(mockRl);
-      mockCreateReadStream.mockReturnValue({});
+      mockCreateReadStream.mockReturnValue({ destroy: vi.fn() });
 
       mockExistsSync.mockReturnValue(true);
       mockReaddirSync.mockImplementation((path: string) => {
@@ -720,9 +731,10 @@ describe('SubagentWatcher', () => {
       const longText = 'x'.repeat(1000);
       const textEntry = createAssistantTextEntry(longText);
 
-      const mockRl = new EventEmitter();
-      mockCreateInterface.mockReturnValue(mockRl);
-      mockCreateReadStream.mockReturnValue({});
+      const descRl = createMockRl();
+      const tailRl = createMockRl();
+      mockCreateInterface.mockReturnValueOnce(descRl).mockReturnValue(tailRl);
+      mockCreateReadStream.mockReturnValue({ destroy: vi.fn() });
 
       mockExistsSync.mockReturnValue(true);
       mockReaddirSync.mockImplementation((path: string) => {
@@ -744,9 +756,14 @@ describe('SubagentWatcher', () => {
 
       watcher.start();
       await flushAsyncScan();
-      mockRl.emit('line', textEntry);
-      mockRl.emit('close');
 
+      // Resolve extractDescriptionFromFile
+      descRl.emit('close');
+      await vi.advanceTimersByTimeAsync(100);
+
+      // Now tailFile is set up — emit entries on tailRl
+      tailRl.emit('line', textEntry);
+      tailRl.emit('close');
       await vi.advanceTimersByTimeAsync(100);
 
       expect(messageHandler).toHaveBeenCalled();
@@ -757,9 +774,10 @@ describe('SubagentWatcher', () => {
     it('should extract progress events', async () => {
       const progressEntry = createProgressEntry('query_update', { query: 'searching for files' });
 
-      const mockRl = new EventEmitter();
-      mockCreateInterface.mockReturnValue(mockRl);
-      mockCreateReadStream.mockReturnValue({});
+      const descRl = createMockRl();
+      const tailRl = createMockRl();
+      mockCreateInterface.mockReturnValueOnce(descRl).mockReturnValue(tailRl);
+      mockCreateReadStream.mockReturnValue({ destroy: vi.fn() });
 
       mockExistsSync.mockReturnValue(true);
       mockReaddirSync.mockImplementation((path: string) => {
@@ -781,9 +799,14 @@ describe('SubagentWatcher', () => {
 
       watcher.start();
       await flushAsyncScan();
-      mockRl.emit('line', progressEntry);
-      mockRl.emit('close');
 
+      // Resolve extractDescriptionFromFile
+      descRl.emit('close');
+      await vi.advanceTimersByTimeAsync(100);
+
+      // Now tailFile is set up — emit entries on tailRl
+      tailRl.emit('line', progressEntry);
+      tailRl.emit('close');
       await vi.advanceTimersByTimeAsync(100);
 
       expect(progressHandler).toHaveBeenCalled();
@@ -795,9 +818,9 @@ describe('SubagentWatcher', () => {
 
   describe('Memory Management', () => {
     it('should track agents in agentInfo map', async () => {
-      const mockRl = new EventEmitter();
+      const mockRl = createMockRl();
       mockCreateInterface.mockReturnValue(mockRl);
-      mockCreateReadStream.mockReturnValue({});
+      mockCreateReadStream.mockReturnValue({ destroy: vi.fn() });
 
       mockExistsSync.mockReturnValue(true);
       mockReaddirSync.mockImplementation((path: string) => {
@@ -832,9 +855,10 @@ describe('SubagentWatcher', () => {
       const toolEntry1 = createToolUseEntry('Read', { file_path: '/test1.ts' });
       const toolEntry2 = createToolUseEntry('Write', { file_path: '/test2.ts' });
 
-      const mockRl = new EventEmitter();
-      mockCreateInterface.mockReturnValue(mockRl);
-      mockCreateReadStream.mockReturnValue({});
+      const descRl = createMockRl();
+      const tailRl = createMockRl();
+      mockCreateInterface.mockReturnValueOnce(descRl).mockReturnValue(tailRl);
+      mockCreateReadStream.mockReturnValue({ destroy: vi.fn() });
 
       mockExistsSync.mockReturnValue(true);
       mockReaddirSync.mockImplementation((path: string) => {
@@ -853,10 +877,15 @@ describe('SubagentWatcher', () => {
 
       watcher.start();
       await flushAsyncScan();
-      mockRl.emit('line', toolEntry1);
-      mockRl.emit('line', toolEntry2);
-      mockRl.emit('close');
 
+      // Resolve extractDescriptionFromFile
+      descRl.emit('close');
+      await vi.advanceTimersByTimeAsync(100);
+
+      // Now tailFile is set up — emit entries on tailRl
+      tailRl.emit('line', toolEntry1);
+      tailRl.emit('line', toolEntry2);
+      tailRl.emit('close');
       await vi.advanceTimersByTimeAsync(100);
 
       const agent = watcher.getSubagent('toolcount');
@@ -871,9 +900,10 @@ describe('SubagentWatcher', () => {
         createToolUseEntry('Read', { file_path: '/test.ts' }),
       ];
 
-      const mockRl = new EventEmitter();
-      mockCreateInterface.mockReturnValue(mockRl);
-      mockCreateReadStream.mockReturnValue({});
+      const descRl = createMockRl();
+      const tailRl = createMockRl();
+      mockCreateInterface.mockReturnValueOnce(descRl).mockReturnValue(tailRl);
+      mockCreateReadStream.mockReturnValue({ destroy: vi.fn() });
 
       mockExistsSync.mockReturnValue(true);
       mockReaddirSync.mockImplementation((path: string) => {
@@ -892,11 +922,16 @@ describe('SubagentWatcher', () => {
 
       watcher.start();
       await flushAsyncScan();
-      for (const entry of entries) {
-        mockRl.emit('line', entry);
-      }
-      mockRl.emit('close');
 
+      // Resolve extractDescriptionFromFile
+      descRl.emit('close');
+      await vi.advanceTimersByTimeAsync(100);
+
+      // Now tailFile is set up — emit entries on tailRl
+      for (const entry of entries) {
+        tailRl.emit('line', entry);
+      }
+      tailRl.emit('close');
       await vi.advanceTimersByTimeAsync(100);
 
       const agent = watcher.getSubagent('entrycount');
@@ -907,9 +942,9 @@ describe('SubagentWatcher', () => {
     // Note: Current implementation has no cleanup/eviction policy
     // This documents the behavior as a known issue
     it('should retain all agents indefinitely (no cleanup policy)', async () => {
-      const mockRl = new EventEmitter();
+      const mockRl = createMockRl();
       mockCreateInterface.mockReturnValue(mockRl);
-      mockCreateReadStream.mockReturnValue({});
+      mockCreateReadStream.mockReturnValue({ destroy: vi.fn() });
 
       mockExistsSync.mockReturnValue(true);
 
@@ -949,9 +984,9 @@ describe('SubagentWatcher', () => {
         createToolUseEntry('Read', { file_path: '/test.ts' }),
       ];
 
-      const mockRl = new EventEmitter();
+      const mockRl = createMockRl();
       mockCreateInterface.mockReturnValue(mockRl);
-      mockCreateReadStream.mockReturnValue({});
+      mockCreateReadStream.mockReturnValue({ destroy: vi.fn() });
 
       mockExistsSync.mockReturnValue(true);
       mockReaddirSync.mockImplementation((path: string) => {
@@ -979,13 +1014,11 @@ describe('SubagentWatcher', () => {
     });
 
     it('should limit transcript entries when limit is specified', async () => {
-      const entries = Array.from({ length: 10 }, (_, i) =>
-        createUserEntry(`Message ${i}`)
-      );
+      const entries = Array.from({ length: 10 }, (_, i) => createUserEntry(`Message ${i}`));
 
-      const mockRl = new EventEmitter();
+      const mockRl = createMockRl();
       mockCreateInterface.mockReturnValue(mockRl);
-      mockCreateReadStream.mockReturnValue({});
+      mockCreateReadStream.mockReturnValue({ destroy: vi.fn() });
 
       mockExistsSync.mockReturnValue(true);
       mockReaddirSync.mockImplementation((path: string) => {
@@ -1013,9 +1046,9 @@ describe('SubagentWatcher', () => {
     });
 
     it('should return empty array for unknown agent', async () => {
-      const mockRl = new EventEmitter();
+      const mockRl = createMockRl();
       mockCreateInterface.mockReturnValue(mockRl);
-      mockCreateReadStream.mockReturnValue({});
+      mockCreateReadStream.mockReturnValue({ destroy: vi.fn() });
 
       mockExistsSync.mockReturnValue(true);
       mockReaddirSync.mockReturnValue([]);
@@ -1037,9 +1070,7 @@ describe('SubagentWatcher', () => {
           sessionId: 'sess1',
           message: {
             role: 'assistant',
-            content: [
-              { type: 'tool_use', name: 'WebSearch', input: { query: 'test query' } },
-            ],
+            content: [{ type: 'tool_use', name: 'WebSearch', input: { query: 'test query' } }],
           },
         },
       ];
@@ -1092,9 +1123,9 @@ describe('SubagentWatcher', () => {
     it('should extract description from first user message', async () => {
       const userEntry = createUserEntry('Create comprehensive tests for the module');
 
-      const mockRl = new EventEmitter();
+      const mockRl = createMockRl();
       mockCreateInterface.mockReturnValue(mockRl);
-      mockCreateReadStream.mockReturnValue({});
+      mockCreateReadStream.mockReturnValue({ destroy: vi.fn() });
 
       mockExistsSync.mockReturnValue(true);
       mockReaddirSync.mockImplementation((path: string) => {
@@ -1116,6 +1147,7 @@ describe('SubagentWatcher', () => {
 
       watcher.start();
       await flushAsyncScan();
+      mockRl.emit('line', userEntry);
       mockRl.emit('close');
 
       await vi.advanceTimersByTimeAsync(100);
@@ -1134,9 +1166,9 @@ describe('SubagentWatcher', () => {
 
       const userEntry = createUserEntry(longPrompt);
 
-      const mockRl = new EventEmitter();
+      const mockRl = createMockRl();
       mockCreateInterface.mockReturnValue(mockRl);
-      mockCreateReadStream.mockReturnValue({});
+      mockCreateReadStream.mockReturnValue({ destroy: vi.fn() });
 
       mockExistsSync.mockReturnValue(true);
       mockReaddirSync.mockImplementation((path: string) => {
@@ -1158,6 +1190,7 @@ describe('SubagentWatcher', () => {
 
       watcher.start();
       await flushAsyncScan();
+      mockRl.emit('line', userEntry);
       mockRl.emit('close');
 
       await vi.advanceTimersByTimeAsync(100);
@@ -1169,9 +1202,9 @@ describe('SubagentWatcher', () => {
     });
 
     it('should emit subagent:updated when description is extracted from processEntry', async () => {
-      const mockRl = new EventEmitter();
+      const mockRl = createMockRl();
       mockCreateInterface.mockReturnValue(mockRl);
-      mockCreateReadStream.mockReturnValue({});
+      mockCreateReadStream.mockReturnValue({ destroy: vi.fn() });
 
       mockExistsSync.mockReturnValue(true);
       mockReaddirSync.mockImplementation((path: string) => {
@@ -1234,7 +1267,7 @@ describe('SubagentWatcher', () => {
         },
       });
 
-      const mockRl = new EventEmitter();
+      const mockRl = createMockRl();
       mockCreateInterface.mockReturnValue(mockRl);
 
       // createReadStream now used for parent transcript reading (stream tail)
@@ -1287,9 +1320,9 @@ describe('SubagentWatcher', () => {
 
   describe('getRecentSubagents', () => {
     it('should return only recent subagents', async () => {
-      const mockRl = new EventEmitter();
+      const mockRl = createMockRl();
       mockCreateInterface.mockReturnValue(mockRl);
-      mockCreateReadStream.mockReturnValue({});
+      mockCreateReadStream.mockReturnValue({ destroy: vi.fn() });
 
       mockExistsSync.mockReturnValue(true);
       mockReaddirSync.mockImplementation((path: string) => {
@@ -1317,9 +1350,9 @@ describe('SubagentWatcher', () => {
     });
 
     it('should sort by lastActivityAt descending', async () => {
-      const mockRl = new EventEmitter();
+      const mockRl = createMockRl();
       mockCreateInterface.mockReturnValue(mockRl);
-      mockCreateReadStream.mockReturnValue({});
+      mockCreateReadStream.mockReturnValue({ destroy: vi.fn() });
 
       mockExistsSync.mockReturnValue(true);
       mockReaddirSync.mockImplementation((path: string) => {
@@ -1354,9 +1387,9 @@ describe('SubagentWatcher', () => {
 
   describe('getSubagentsForSession', () => {
     it('should filter subagents by working directory', async () => {
-      const mockRl = new EventEmitter();
+      const mockRl = createMockRl();
       mockCreateInterface.mockReturnValue(mockRl);
-      mockCreateReadStream.mockReturnValue({});
+      mockCreateReadStream.mockReturnValue({ destroy: vi.fn() });
 
       mockExistsSync.mockReturnValue(true);
       mockReaddirSync.mockImplementation((path: string) => {
@@ -1392,9 +1425,9 @@ describe('SubagentWatcher', () => {
     });
 
     it('should return false for already completed agent', async () => {
-      const mockRl = new EventEmitter();
+      const mockRl = createMockRl();
       mockCreateInterface.mockReturnValue(mockRl);
-      mockCreateReadStream.mockReturnValue({});
+      mockCreateReadStream.mockReturnValue({ destroy: vi.fn() });
 
       mockExistsSync.mockReturnValue(true);
       mockReaddirSync.mockImplementation((path: string) => {
@@ -1428,9 +1461,9 @@ describe('SubagentWatcher', () => {
     });
 
     it('should emit completed event when killing active agent', async () => {
-      const mockRl = new EventEmitter();
+      const mockRl = createMockRl();
       mockCreateInterface.mockReturnValue(mockRl);
-      mockCreateReadStream.mockReturnValue({});
+      mockCreateReadStream.mockReturnValue({ destroy: vi.fn() });
 
       mockExistsSync.mockReturnValue(true);
       mockReaddirSync.mockImplementation((path: string) => {
@@ -1485,9 +1518,9 @@ describe('SubagentWatcher', () => {
     });
 
     it('should handle readline errors gracefully', async () => {
-      const mockRl = new EventEmitter();
+      const mockRl = createMockRl();
       mockCreateInterface.mockReturnValue(mockRl);
-      mockCreateReadStream.mockReturnValue({});
+      mockCreateReadStream.mockReturnValue({ destroy: vi.fn() });
 
       mockExistsSync.mockReturnValue(true);
       mockReaddirSync.mockImplementation((path: string) => {
@@ -1524,9 +1557,9 @@ describe('SubagentWatcher', () => {
       // Only directory watchers are created (no per-file watchers)
       mockWatch.mockReturnValue(mockDirWatcher);
 
-      const mockRl = new EventEmitter();
+      const mockRl = createMockRl();
       mockCreateInterface.mockReturnValue(mockRl);
-      mockCreateReadStream.mockReturnValue({});
+      mockCreateReadStream.mockReturnValue({ destroy: vi.fn() });
 
       mockExistsSync.mockReturnValue(true);
       mockReaddirSync.mockImplementation((path: string) => {
@@ -1556,9 +1589,9 @@ describe('SubagentWatcher', () => {
     });
 
     it('should clear idle timers on stop', async () => {
-      const mockRl = new EventEmitter();
+      const mockRl = createMockRl();
       mockCreateInterface.mockReturnValue(mockRl);
-      mockCreateReadStream.mockReturnValue({});
+      mockCreateReadStream.mockReturnValue({ destroy: vi.fn() });
 
       mockExistsSync.mockReturnValue(true);
       mockReaddirSync.mockImplementation((path: string) => {
@@ -1596,9 +1629,9 @@ describe('SubagentWatcher', () => {
 
   describe('Project Hash Conversion', () => {
     it('should convert working directory to project hash format', async () => {
-      const mockRl = new EventEmitter();
+      const mockRl = createMockRl();
       mockCreateInterface.mockReturnValue(mockRl);
-      mockCreateReadStream.mockReturnValue({});
+      mockCreateReadStream.mockReturnValue({ destroy: vi.fn() });
 
       mockExistsSync.mockReturnValue(true);
 
@@ -1640,9 +1673,7 @@ describe('SubagentWatcher', () => {
           sessionId: 'sess1',
           message: {
             role: 'assistant',
-            content: [
-              { type: 'tool_use', name: 'WebSearch', input: { query: 'nodejs best practices' } },
-            ],
+            content: [{ type: 'tool_use', name: 'WebSearch', input: { query: 'nodejs best practices' } }],
           },
         },
       ];
@@ -1661,9 +1692,7 @@ describe('SubagentWatcher', () => {
           sessionId: 'sess1',
           message: {
             role: 'assistant',
-            content: [
-              { type: 'tool_use', name: 'Read', input: { file_path: '/src/index.ts' } },
-            ],
+            content: [{ type: 'tool_use', name: 'Read', input: { file_path: '/src/index.ts' } }],
           },
         },
       ];
@@ -1682,9 +1711,7 @@ describe('SubagentWatcher', () => {
           sessionId: 'sess1',
           message: {
             role: 'assistant',
-            content: [
-              { type: 'tool_use', name: 'Bash', input: { command: 'npm test' } },
-            ],
+            content: [{ type: 'tool_use', name: 'Bash', input: { command: 'npm test' } }],
           },
         },
       ];
@@ -1704,9 +1731,7 @@ describe('SubagentWatcher', () => {
           sessionId: 'sess1',
           message: {
             role: 'assistant',
-            content: [
-              { type: 'tool_use', name: 'Bash', input: { command: longCommand } },
-            ],
+            content: [{ type: 'tool_use', name: 'Bash', input: { command: longCommand } }],
           },
         },
       ];
@@ -1753,9 +1778,10 @@ describe('SubagentWatcher', () => {
     it('should emit user messages under 500 chars', async () => {
       const userEntry = createUserEntry('Short user message');
 
-      const mockRl = new EventEmitter();
-      mockCreateInterface.mockReturnValue(mockRl);
-      mockCreateReadStream.mockReturnValue({});
+      const descRl = createMockRl();
+      const tailRl = createMockRl();
+      mockCreateInterface.mockReturnValueOnce(descRl).mockReturnValue(tailRl);
+      mockCreateReadStream.mockReturnValue({ destroy: vi.fn() });
 
       mockExistsSync.mockReturnValue(true);
       mockReaddirSync.mockImplementation((path: string) => {
@@ -1777,9 +1803,14 @@ describe('SubagentWatcher', () => {
 
       watcher.start();
       await flushAsyncScan();
-      mockRl.emit('line', userEntry);
-      mockRl.emit('close');
 
+      // Resolve extractDescriptionFromFile
+      descRl.emit('close');
+      await vi.advanceTimersByTimeAsync(100);
+
+      // Now tailFile is set up — emit entries on tailRl
+      tailRl.emit('line', userEntry);
+      tailRl.emit('close');
       await vi.advanceTimersByTimeAsync(100);
 
       expect(messageHandler).toHaveBeenCalled();
@@ -1790,9 +1821,9 @@ describe('SubagentWatcher', () => {
     it('should not emit long user messages (over 500 chars)', async () => {
       const longUserEntry = createUserEntry('x'.repeat(600));
 
-      const mockRl = new EventEmitter();
+      const mockRl = createMockRl();
       mockCreateInterface.mockReturnValue(mockRl);
-      mockCreateReadStream.mockReturnValue({});
+      mockCreateReadStream.mockReturnValue({ destroy: vi.fn() });
 
       mockExistsSync.mockReturnValue(true);
       mockReaddirSync.mockImplementation((path: string) => {
@@ -1820,9 +1851,7 @@ describe('SubagentWatcher', () => {
       await vi.advanceTimersByTimeAsync(100);
 
       // Long user messages are filtered out
-      const userMessages = messageHandler.mock.calls.filter(
-        (call) => (call[0] as SubagentMessage).role === 'user'
-      );
+      const userMessages = messageHandler.mock.calls.filter((call) => (call[0] as SubagentMessage).role === 'user');
       expect(userMessages.length).toBe(0);
     });
   });
@@ -1831,9 +1860,9 @@ describe('SubagentWatcher', () => {
     it('should not emit message for empty text content', async () => {
       const emptyTextEntry = createAssistantTextEntry('   ');
 
-      const mockRl = new EventEmitter();
+      const mockRl = createMockRl();
       mockCreateInterface.mockReturnValue(mockRl);
-      mockCreateReadStream.mockReturnValue({});
+      mockCreateReadStream.mockReturnValue({ destroy: vi.fn() });
 
       mockExistsSync.mockReturnValue(true);
       mockReaddirSync.mockImplementation((path: string) => {
