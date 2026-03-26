@@ -1,6 +1,10 @@
 # Claude Code local files
 .agents/
 skills-lock.json
+.claude
+.codex
+.npm_cache
+
 
 # Dependencies
 node_modules/
